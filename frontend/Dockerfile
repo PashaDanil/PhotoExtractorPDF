@@ -9,13 +9,13 @@ FROM node:25-alpine3.23 AS builder
 WORKDIR /frontend
 
 # Copy package-related files first to leverage Docker's caching mechanism
-COPY package.json package-lock.json* ./
+COPY frontend/package.json frontend/package-lock.json* ./
 
 # Install project dependencies using npm ci (ensures a clean, reproducible install)
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 # Copy the rest of the application source code into the container
-COPY . .
+COPY frontend/ .
 
 # Build the React.js application (outputs to /frontend/dist)
 RUN npm run build
@@ -27,7 +27,7 @@ RUN npm run build
 FROM nginx:1.29.4-alpine3.23 AS runner
 
 # Copy custom Nginx config
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
 # Copy the static build output from the build stage to Nginx's default HTML serving directory
 COPY --chown=nginx:nginx --from=builder /frontend/dist /usr/share/nginx/html

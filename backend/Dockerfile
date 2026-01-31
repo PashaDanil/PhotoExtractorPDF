@@ -6,12 +6,12 @@ FROM golang:1.25.6-alpine3.23 AS build-stage
 WORKDIR /backend
 
 # Download Go modules
-COPY go.mod go.sum ./
+COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
 # Copy the source code. Note the slash at the end, as explained in
 # https://docs.docker.com/reference/dockerfile/#copy
-COPY . .
+COPY backend/ .
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o imgpdf ./cmd/imgpdf
