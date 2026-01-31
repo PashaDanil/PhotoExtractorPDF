@@ -36,7 +36,7 @@ COPY --chown=nginx:nginx --from=builder /frontend/dist /usr/share/nginx/html
 USER nginx
 
 # Expose port 8080 to allow HTTP traffic
-# Note: The default NGINX container now listens on port 8080 instead of 80 
+# Note: NGINX is configured in nginx.conf to listen on port 8080 instead of the default port 80
 EXPOSE 8080
 
 # Start Nginx directly with custom config
