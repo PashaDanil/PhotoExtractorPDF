@@ -1,11 +1,17 @@
 package main
 
-import "imgpdf/internal/app"
+import (
+	"imgpdf/internal/app"
+	"log"
+)
 
 func main() {
 	a, err := app.New()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	a.Run()
+
+	if err := a.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
