@@ -22,6 +22,9 @@ Thumbs.db
 # Docker
 Dockerfile
 
+# Swagger docs (генерируются внутри Dockerfile)
+docs/
+
 # Go
 *.exe
 *.test

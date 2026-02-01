@@ -95,6 +95,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API для загрузки PDF и получения ZIP с изображениями",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

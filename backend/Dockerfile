@@ -13,6 +13,12 @@ RUN go mod download
 # https://docs.docker.com/reference/dockerfile/#copy
 COPY . .
 
+# установить swag (или через go install)
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+# сгенерить docs (важно: путь под твой проект)
+RUN swag init -g main.go -d ./cmd/imgpdf,./internal/http/handler
+
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o imgpdf ./cmd/imgpdf
 
