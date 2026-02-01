@@ -1,0 +1,20 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    expose:
+      - "8080"
+    restart: unless-stopped
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:8080"
+    depends_on:
+      - backend
+    restart: unless-stopped

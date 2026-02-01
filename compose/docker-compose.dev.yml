@@ -1,0 +1,35 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend-dev:
+    container_name: frontend-dev
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_USE_POLLING=true
+      - VITE_API_URL=http://backend:8080
+    volumes:
+      - ../frontend:/frontend-dev
+      - frontend-dev-node-modules:/frontend-dev/node_modules
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ../frontend
+          target: /frontend-dev
+          ignore:
+            - node_modules/
+
+volumes:
+  frontend-dev-node-modules:
