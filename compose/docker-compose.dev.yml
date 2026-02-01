@@ -1,24 +1,38 @@
 name: photoextractor-dev
 
+x-minio-common: &minio-common
+  image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+  command: server --console-address ":9001" http://minio{1...4}/data{1...2}
+  networks:
+    - dev
+  environment:
+    MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+    MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+  healthcheck:
+    test: ["CMD", "mc", "ready", "local"]
+    interval: 5s
+    timeout: 5s
+    retries: 5
+
 services:
   backend:
     container_name: backend_dev
-    networks:
-      - dev
     build:
       context: ../backend
       dockerfile: Dockerfile
+    networks:
+      - dev
     ports:
       - "8080:8080"
     restart: unless-stopped
 
-  frontend-dev:
+  frontend:
     container_name: frontend_dev
-    networks:
-      - dev
     build:
       context: ../frontend
       dockerfile: Dockerfile.dev
+    networks:
+      - dev
     ports:
       - "5173:5173"
     environment:
@@ -29,6 +43,7 @@ services:
       - frontend-dev-node-modules:/frontend-dev/node_modules
     depends_on:
       - backend
+    restart: unless-stopped
     develop:
       watch:
         - action: sync
@@ -37,23 +52,133 @@ services:
           ignore:
             - node_modules/
 
+  # RabbitMQ service
+  rabbitmq:
+    image: rabbitmq:4.2.3-management-alpine
+    hostname: rabbitmq
+    networks:
+      - dev
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ../infra/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # Redis service
+  redis:
+    image: redis:8.6-rc1-alpine3.23
+    hostname: redis
+    networks:
+      - dev
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   redisinsight:
     image: redis/redisinsight:3.0
     container_name: redisinsight_gui
     networks:
       - dev
     ports:
-      - "8001:5540" # Exposes RedisInsight on port 8001
+      - "8001:5540"
     volumes:
-      # Optional: Persist RedisInsight configuration/data
       - redisinsightdata:/db
     restart: unless-stopped
 
+  minio1:
+    <<: *minio-common
+    hostname: minio1
+    volumes:
+      - data1-1:/data1
+      - data1-2:/data2
+
+  minio2:
+    <<: *minio-common
+    hostname: minio2
+    volumes:
+      - data2-1:/data1
+      - data2-2:/data2
+
+  minio3:
+    <<: *minio-common
+    hostname: minio3
+    volumes:
+      - data3-1:/data1
+      - data3-2:/data2
+
+  minio4:
+    <<: *minio-common
+    hostname: minio4
+    volumes:
+      - data4-1:/data1
+      - data4-2:/data2
+
+  nginx:
+    image: nginx:1.29.4-alpine3.23
+    hostname: nginx
+    networks:
+      - dev
+    volumes:
+      - ../infra/minio/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - minio1
+      - minio2
+      - minio3
+      - minio4
+
+## By default this config uses default local driver,
+## For custom volumes replace with volume driver configuration.
 volumes:
+  data1-1:
+  data1-2:
+  data2-1:
+  data2-2:
+  data3-1:
+  data3-2:
+  data4-1:
+  data4-2:
+  redis_data:
+  rabbitmq-data:
   frontend-dev-node-modules:
   redisinsightdata:
 
 networks:
   dev:
     name: photoextractor_dev
-    external: true
+    driver: bridge
