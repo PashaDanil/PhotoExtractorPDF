@@ -17,6 +17,17 @@ func NewTakePDFHandler(pdfService *service.PDFService) *TakePDFHandler {
 	}
 }
 
+// HandleTakePDF godoc
+// @Summary Загрузить PDF
+// @Description Принимает PDF файл и сохраняет его для обработки
+// @Tags pdf
+// @Accept multipart/form-data
+// @Produce json
+// @Param pdf formData file true "PDF файл"
+// @Success 200 "PDF успешно загружен"
+// @Failure 400 {string} string "Некорректный запрос"
+// @Failure 500 {string} string "Ошибка сервера"
+// @Router /pdf [post]
 func (h *TakePDFHandler) HandleTakePDF(w http.ResponseWriter, r *http.Request) {
 	// берем pdf из запроса
 	file, _, err := r.FormFile("pdf")

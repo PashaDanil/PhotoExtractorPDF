@@ -1,0 +1,53 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: API для загрузки PDF и получения ZIP с изображениями
+  title: PDF Image Extractor API
+  version: "1.0"
+paths:
+  /pdf:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Принимает PDF файл и сохраняет его для обработки
+      parameters:
+      - description: PDF файл
+        in: formData
+        name: pdf
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: PDF успешно загружен
+        "400":
+          description: Некорректный запрос
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
+      summary: Загрузить PDF
+      tags:
+      - pdf
+  /zip:
+    get:
+      description: Возвращает ZIP архив с изображениями из PDF
+      produces:
+      - application/zip
+      responses:
+        "200":
+          description: ZIP архив
+          schema:
+            type: file
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
+      summary: Скачать ZIP с изображениями
+      tags:
+      - zip
+swagger: "2.0"

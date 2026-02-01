@@ -5,6 +5,8 @@ import (
 	"imgpdf/internal/service"
 	"log"
 	"net/http"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type App struct {
@@ -21,6 +23,7 @@ func New() (*App, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/pdf", TakePDFHandler.HandleTakePDF)
 	mux.HandleFunc("/zip", GiveZIPHandler.HandleGiveZIP)
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	server := &http.Server{
 		Addr:    ":8080",

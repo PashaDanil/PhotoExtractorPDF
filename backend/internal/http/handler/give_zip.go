@@ -18,6 +18,14 @@ func NewGiveZIPHandler(zipService *service.ZIPService) *GiveZIPHandler {
 	}
 }
 
+// HandleGiveZIP godoc
+// @Summary Скачать ZIP с изображениями
+// @Description Возвращает ZIP архив с изображениями из PDF
+// @Tags zip
+// @Produce application/zip
+// @Success 200 {file} file "ZIP архив"
+// @Failure 500 {string} string "Ошибка сервера"
+// @Router /zip [get]
 func (h *GiveZIPHandler) HandleGiveZIP(w http.ResponseWriter, r *http.Request) {
 	zip, err := h.zipService.GiveZIP()
 	if err != nil {
