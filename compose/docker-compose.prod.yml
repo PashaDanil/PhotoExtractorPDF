@@ -1,6 +1,10 @@
+name: photoextractor-prod
+
 services:
   backend:
-    container_name: backend
+    container_name: backend_prod
+    networks:
+      - prod
     build:
       context: ../backend
       dockerfile: Dockerfile
@@ -9,7 +13,9 @@ services:
     restart: unless-stopped
 
   frontend:
-    container_name: frontend
+    container_name: frontend_prod
+    networks:
+      - prod
     build:
       context: ../frontend
       dockerfile: Dockerfile
@@ -18,3 +24,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+networks:
+  prod:
+    name: photoextractor_prod
+    external: true
