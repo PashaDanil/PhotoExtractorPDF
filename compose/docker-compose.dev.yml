@@ -1,0 +1,59 @@
+name: photoextractor-dev
+
+services:
+  backend:
+    container_name: backend_dev
+    networks:
+      - dev
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend-dev:
+    container_name: frontend_dev
+    networks:
+      - dev
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_USE_POLLING=${VITE_USE_POLLING}
+      - VITE_API_URL=${VITE_API_URL}
+    volumes:
+      - ../frontend:/frontend-dev
+      - frontend-dev-node-modules:/frontend-dev/node_modules
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ../frontend
+          target: /frontend-dev
+          ignore:
+            - node_modules/
+
+  redisinsight:
+    image: redis/redisinsight:3.0
+    container_name: redisinsight_gui
+    networks:
+      - dev
+    ports:
+      - "8001:5540" # Exposes RedisInsight on port 8001
+    volumes:
+      # Optional: Persist RedisInsight configuration/data
+      - redisinsightdata:/db
+    restart: unless-stopped
+
+volumes:
+  frontend-dev-node-modules:
+  redisinsightdata:
+
+networks:
+  dev:
+    name: photoextractor_dev
+    external: true
