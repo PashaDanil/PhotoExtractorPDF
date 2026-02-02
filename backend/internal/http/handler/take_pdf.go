@@ -7,12 +7,12 @@ import (
 	"net/http"
 )
 
-type TakePDFHandler struct {
+type PDFHandler struct {
 	pdfService *service.PDFService
 }
 
-func NewTakePDFHandler(pdfService *service.PDFService) *TakePDFHandler {
-	return &TakePDFHandler{
+func NewPDFHandler(pdfService *service.PDFService) *PDFHandler {
+	return &PDFHandler{
 		pdfService: pdfService,
 	}
 }
@@ -28,7 +28,7 @@ func NewTakePDFHandler(pdfService *service.PDFService) *TakePDFHandler {
 // @Failure 400 {string} string "Некорректный запрос"
 // @Failure 500 {string} string "Ошибка сервера"
 // @Router /pdf [post]
-func (h *TakePDFHandler) HandleTakePDF(w http.ResponseWriter, r *http.Request) {
+func (h *PDFHandler) HandleTakePDF(w http.ResponseWriter, r *http.Request) {
 	// берем pdf из запроса
 	file, _, err := r.FormFile("pdf")
 	if err != nil {

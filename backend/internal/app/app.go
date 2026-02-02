@@ -1,7 +1,10 @@
 package app
 
 import (
+	"context"
 	"imgpdf/internal/http/handler"
+	"imgpdf/internal/minio"
+	"imgpdf/internal/redis"
 	"imgpdf/internal/service"
 	"log"
 	"net/http"
@@ -13,16 +16,39 @@ type App struct {
 	server *http.Server
 }
 
-func New() (*App, error) {
+func New(ctx context.Context) (*App, error) {
+	rdb, err := redis.New(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	minioClient, err := minio.New(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	jobRedis := redis.NewJobRedis(rdb)
+	minioStorage := minio.NewMinioStorage(minioClient)
+
 	pdfService := service.NewPDFService()
 	zipService := service.NewZIPService()
+	jobService := service.NewJobService(jobRedis, minioStorage)
 
-	TakePDFHandler := handler.NewTakePDFHandler(pdfService)
-	GiveZIPHandler := handler.NewGiveZIPHandler(zipService)
+	PDFHandler := handler.NewPDFHandler(pdfService)
+	ZIPHandler := handler.NewZIPHandler(zipService)
+	jobHandler := handler.NewJobHandler(jobService)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/pdf", TakePDFHandler.HandleTakePDF)
-	mux.HandleFunc("/zip", GiveZIPHandler.HandleGiveZIP)
+	mux.HandleFunc("/pdf", PDFHandler.HandleTakePDF)
+	mux.HandleFunc("/zip", ZIPHandler.HandleGiveZIP)
+	mux.HandleFunc("/jobs", jobHandler.HandlePDFUploadRequest)
+	mux.HandleFunc("/jobs/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/jobs" && r.URL.Path != "/jobs/" {
+			jobHandler.HandlePDFUploadComplete(w, r)
+		} else {
+			jobHandler.HandlePDFUploadRequest(w, r)
+		}
+	})
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	server := &http.Server{

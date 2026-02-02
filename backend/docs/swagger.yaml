@@ -1,4 +1,19 @@
 basePath: /
+definitions:
+  handler.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handler.InitUploadResponse:
+    properties:
+      job_id:
+        type: string
+      pdf_key:
+        type: string
+      presigned_url:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -6,6 +21,66 @@ info:
   title: PDF Image Extractor API
   version: "1.0"
 paths:
+  /jobs:
+    post:
+      consumes:
+      - application/json
+      description: Создает новую задачу и возвращает presigned URL для загрузки PDF
+        в MinIO
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Данные для загрузки
+          schema:
+            $ref: '#/definitions/handler.InitUploadResponse'
+        "405":
+          description: Метод не разрешен
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Инициализировать загрузку PDF
+      tags:
+      - jobs
+  /jobs/{job_id}/complete-upload:
+    post:
+      consumes:
+      - application/json
+      description: Отмечает задачу как готовую к обработке после успешной загрузки
+        PDF
+      parameters:
+      - description: ID задачи
+        in: path
+        name: job_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статус успешно обновлен
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Некорректный путь или ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "405":
+          description: Метод не разрешен
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Завершить загрузку PDF
+      tags:
+      - jobs
   /pdf:
     post:
       consumes:

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "imgpdf/docs"
 	"imgpdf/internal/app"
 	"log"
@@ -12,7 +13,8 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	a, err := app.New()
+	ctx := context.Background()
+	a, err := app.New(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
