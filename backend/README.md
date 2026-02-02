@@ -1,1 +1,0 @@
-SWAGGER: swag init -g main.go -d ./cmd/imgpdf,./internal/http/handler
