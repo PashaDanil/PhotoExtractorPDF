@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -17,6 +18,8 @@ type App struct {
 }
 
 func New(ctx context.Context) (*App, error) {
+	// Load .env file if it exists (optional for local dev, not needed in Docker)
+	_ = godotenv.Load(".env")
 	rdb, err := redis.New(ctx)
 	if err != nil {
 		return nil, err
