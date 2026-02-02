@@ -3,6 +3,7 @@ package minio
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -11,8 +12,16 @@ import (
 const bucketName = "imgpdf"
 
 func New(ctx context.Context) (*minio.Client, error) {
-	client, err := minio.New("localhost:9000", &minio.Options{
-		Creds:  credentials.NewStaticV4("imgpdf", "imgpdf12345", ""),
+	// client, err := minio.New("localhost:9000", &minio.Options{
+	// 	Creds:  credentials.NewStaticV4("imgpdf", "imgpdf12345", ""),
+	// 	Secure: false,
+	// })
+	client, err := minio.New(os.Getenv("MINIO_URL"), &minio.Options{
+		Creds: credentials.NewStaticV4(
+			os.Getenv("MINIO_ROOT_USER"),
+			os.Getenv("MINIO_ROOT_PASSWORD"),
+			"",
+		),
 		Secure: false,
 	})
 	if err != nil {
