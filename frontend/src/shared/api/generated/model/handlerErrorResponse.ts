@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export * from "./handlerErrorResponse";
-export * from "./handlerInitUploadResponse";
-export * from "./postJobsJobIdCompleteUpload200";
-export * from "./postPdfBody";
+export interface HandlerErrorResponse {
+  error?: string;
+}

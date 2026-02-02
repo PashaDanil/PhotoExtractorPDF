@@ -21,9 +21,175 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { PostPdfBody } from "./model";
+import type {
+  HandlerErrorResponse,
+  HandlerInitUploadResponse,
+  PostJobsJobIdCompleteUpload200,
+  PostPdfBody,
+} from "./model";
 
 import { customInstance } from "../http";
+
+/**
+ * Создает новую задачу и возвращает presigned URL для загрузки PDF в MinIO
+ * @summary Инициализировать загрузку PDF
+ */
+export const postJobs = (signal?: AbortSignal) => {
+  return customInstance<HandlerInitUploadResponse>({
+    url: `/jobs`,
+    method: "POST",
+    signal,
+  });
+};
+
+export const getPostJobsMutationOptions = <
+  TError = HandlerErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postJobs>>,
+    TError,
+    void,
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postJobs>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["postJobs"];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postJobs>>,
+    void
+  > = () => {
+    return postJobs();
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostJobsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postJobs>>
+>;
+
+export type PostJobsMutationError = HandlerErrorResponse;
+
+/**
+ * @summary Инициализировать загрузку PDF
+ */
+export const usePostJobs = <TError = HandlerErrorResponse, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postJobs>>,
+      TError,
+      void,
+      TContext
+    >;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postJobs>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getPostJobsMutationOptions(options), queryClient);
+};
+
+/**
+ * Отмечает задачу как готовую к обработке после успешной загрузки PDF
+ * @summary Завершить загрузку PDF
+ */
+export const postJobsJobIdCompleteUpload = (
+  jobId: string,
+  signal?: AbortSignal,
+) => {
+  return customInstance<PostJobsJobIdCompleteUpload200>({
+    url: `/jobs/${jobId}/complete-upload`,
+    method: "POST",
+    signal,
+  });
+};
+
+export const getPostJobsJobIdCompleteUploadMutationOptions = <
+  TError = HandlerErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postJobsJobIdCompleteUpload>>,
+    TError,
+    { jobId: string },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postJobsJobIdCompleteUpload>>,
+  TError,
+  { jobId: string },
+  TContext
+> => {
+  const mutationKey = ["postJobsJobIdCompleteUpload"];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postJobsJobIdCompleteUpload>>,
+    { jobId: string }
+  > = (props) => {
+    const { jobId } = props ?? {};
+
+    return postJobsJobIdCompleteUpload(jobId);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostJobsJobIdCompleteUploadMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postJobsJobIdCompleteUpload>>
+>;
+
+export type PostJobsJobIdCompleteUploadMutationError = HandlerErrorResponse;
+
+/**
+ * @summary Завершить загрузку PDF
+ */
+export const usePostJobsJobIdCompleteUpload = <
+  TError = HandlerErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postJobsJobIdCompleteUpload>>,
+      TError,
+      { jobId: string },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postJobsJobIdCompleteUpload>>,
+  TError,
+  { jobId: string },
+  TContext
+> => {
+  return useMutation(
+    getPostJobsJobIdCompleteUploadMutationOptions(options),
+    queryClient,
+  );
+};
 
 /**
  * Принимает PDF файл и сохраняет его для обработки

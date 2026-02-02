@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-type GiveZIPHandler struct {
+type ZIPHandler struct {
 	zipService *service.ZIPService
 }
 
-func NewGiveZIPHandler(zipService *service.ZIPService) *GiveZIPHandler {
-	return &GiveZIPHandler{
+func NewZIPHandler(zipService *service.ZIPService) *ZIPHandler {
+	return &ZIPHandler{
 		zipService: zipService,
 	}
 }
@@ -26,7 +26,7 @@ func NewGiveZIPHandler(zipService *service.ZIPService) *GiveZIPHandler {
 // @Success 200 {file} file "ZIP архив"
 // @Failure 500 {string} string "Ошибка сервера"
 // @Router /zip [get]
-func (h *GiveZIPHandler) HandleGiveZIP(w http.ResponseWriter, r *http.Request) {
+func (h *ZIPHandler) HandleGiveZIP(w http.ResponseWriter, r *http.Request) {
 	zip, err := h.zipService.GiveZIP()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
