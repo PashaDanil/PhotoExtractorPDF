@@ -18,6 +18,7 @@ import type {
   UploadPDFBody
 } from './pDFToImagesAPI.schemas';
 
+import { customFetch } from '../mutator';
 
 /**
  * Create a new job and get a presigned URL for uploading a PDF file
@@ -57,20 +58,14 @@ export const getInitPDFUploadUrl = () => {
 
 export const initPDFUpload = async ( options?: RequestInit): Promise<initPDFUploadResponse> => {
   
-  const res = await fetch(getInitPDFUploadUrl(),
+  return customFetch<initPDFUploadResponse>(getInitPDFUploadUrl(),
   {      
     ...options,
     method: 'POST'
     
     
   }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  
-  const data: initPDFUploadResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as initPDFUploadResponse
-}
+);}
 
 
 
@@ -117,20 +112,14 @@ export const getCompletePDFUploadUrl = (jobId: string,) => {
 
 export const completePDFUpload = async (jobId: string, options?: RequestInit): Promise<completePDFUploadResponse> => {
   
-  const res = await fetch(getCompletePDFUploadUrl(jobId),
+  return customFetch<completePDFUploadResponse>(getCompletePDFUploadUrl(jobId),
   {      
     ...options,
     method: 'POST'
     
     
   }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  
-  const data: completePDFUploadResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as completePDFUploadResponse
-}
+);}
 
 
 
@@ -174,7 +163,7 @@ export const uploadPDF = async (uploadPDFBody: UploadPDFBody, options?: RequestI
     const formData = new FormData();
 formData.append(`pdf`, uploadPDFBody.pdf);
 
-  const res = await fetch(getUploadPDFUrl(),
+  return customFetch<uploadPDFResponse>(getUploadPDFUrl(),
   {      
     ...options,
     method: 'POST'
@@ -182,13 +171,7 @@ formData.append(`pdf`, uploadPDFBody.pdf);
     body: 
       formData,
   }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  
-  const data: uploadPDFResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as uploadPDFResponse
-}
+);}
 
 
 
@@ -225,20 +208,14 @@ export const getGetZipUrl = () => {
 
 export const getZip = async ( options?: RequestInit): Promise<getZipResponse> => {
   
-  const res = await fetch(getGetZipUrl(),
+  return customFetch<getZipResponse>(getGetZipUrl(),
   {      
     ...options,
     method: 'GET'
     
     
   }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  
-  const data: getZipResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getZipResponse
-}
+);}
 
 
 
