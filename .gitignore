@@ -69,6 +69,9 @@ coverage.html
 go.work
 go.work.sum
 
+# Air hot-reload tmp
+tmp/
+
 # =========================
 # Python / ML
 # =========================
@@ -202,3 +205,4 @@ $RECYCLE.BIN/
 *.swp
 .history/
 .ionide/
+tmp/
