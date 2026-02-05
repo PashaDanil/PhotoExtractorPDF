@@ -1,46 +1,44 @@
-# syntax=docker/dockerfile:1
+# =========================================
+# Stage 1: Build the React.js Application
+# =========================================
 
-# Build stage
-FROM node:25-alpine3.23 AS builder
+# Use a lightweight Node.js image for building (customizable via ARG)
+FROM dhi.io/node:24-alpine3.22-dev AS builder
 
-# Set working directory
-WORKDIR /build
+# Set the working directory inside the container
+WORKDIR /app
 
-# Copy package files first for better layer caching
+# Copy package-related files first to leverage Docker's caching mechanism
 COPY package.json package-lock.json* ./
 
-# Install dependencies with clean install
-RUN npm ci --only=production=false \
-    && npm cache clean --force
+# Install project dependencies using npm ci (ensures a clean, reproducible install)
+RUN --mount=type=cache,target=/root/.npm npm ci
 
-# Copy source code
+# Copy the rest of the application source code into the container
 COPY . .
 
-# Build the application
+# Build the React.js application (outputs to /app/dist)
 RUN npm run build
 
-# Production stage with nginx
-FROM nginx:1.28-alpine3.23
+# =========================================
+# Stage 2: Prepare Nginx to Serve Static Files
+# =========================================
 
-# Install runtime utilities
-RUN apk add --no-cache curl
+FROM dhi.io/nginx:1.28.0-alpine3.21-dev AS runner
 
-# Copy nginx configuration
+# Copy custom Nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy built application from builder
-COPY --from=builder /build/dist /usr/share/nginx/html
+# Copy the static build output from the build stage to Nginx's default HTML serving directory
+COPY --chown=nginx:nginx --from=builder /app/dist /usr/share/nginx/html
 
-# Set proper permissions
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+# Use a non-root user for security best practices
+USER nginx
 
-# Expose port
-EXPOSE 80
+# Expose port 8080 to allow HTTP traffic
+# Note: The default NGINX container now listens on port 8080 instead of 80 
+EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/health || exit 1
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start Nginx directly with custom config
+ENTRYPOINT ["nginx", "-c", "/etc/nginx/nginx.conf"]
+CMD ["-g", "daemon off;"]
