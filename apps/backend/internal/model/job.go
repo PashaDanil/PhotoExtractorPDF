@@ -7,7 +7,6 @@ const (
 	JobStatusQueued     JobStatus = "queued"
 	JobStatusProcessing JobStatus = "processing"
 	JobStatusDone       JobStatus = "done"
-	JobStatusError      JobStatus = "error"
 )
 
 type Job struct {

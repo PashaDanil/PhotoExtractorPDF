@@ -50,5 +50,17 @@ func (s *JobService) InitUpload(ctx context.Context) (*model.Job, error) {
 
 func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
 	now := time.Now()
-	return s.redisRepo.MarkQueuedJob(ctx, jobID, now)
+
+	job := &model.Job{
+		JobID:     jobID,
+		Status:    model.JobStatusQueued,
+		UpdatedAt: now.Unix(),
+	}
+
+	err := s.redisRepo.MarkQueuedJob(ctx, job)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
