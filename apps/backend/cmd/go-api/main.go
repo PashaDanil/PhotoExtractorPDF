@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "go-api/docs"
 	"go-api/internal/app"
 	"log"
 )
