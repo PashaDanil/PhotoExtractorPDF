@@ -11,10 +11,10 @@ const (
 )
 
 type Job struct {
-	Status    JobStatus `json:"status"`
-	PDFKey    string    `json:"pdf_key"`
-	ZIPKey    string    `json:"zip_key,omitempty"`
-	Error     string    `json:"error,omitempty"`
-	CreatedAt int64     `json:"created_at"`
-	UpdatedAt int64     `json:"updated_at"`
+	JobID     string
+	Status    JobStatus
+	PDFKey    string
+	UploadURL string
+	CreatedAt int64
+	UpdatedAt int64
 }

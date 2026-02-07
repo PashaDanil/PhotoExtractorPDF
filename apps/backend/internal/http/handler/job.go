@@ -35,7 +35,7 @@ func (h *JobHandler) HandlePDFUploadRequest(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	jobID, pdfKey, uploadURL, err := h.jobService.InitUpload(r.Context())
+	job, err := h.jobService.InitUpload(r.Context())
 	if err != nil {
 		log.Printf("init upload failed: %v", err)
 		writeError(w, http.StatusInternalServerError, "Failed to initialize upload")
@@ -43,9 +43,9 @@ func (h *JobHandler) HandlePDFUploadRequest(w http.ResponseWriter, r *http.Reque
 	}
 
 	writeJSON(w, http.StatusCreated, InitUploadResponse{
-		JobID:        jobID,
-		PDFKey:       pdfKey,
-		PresignedURL: uploadURL,
+		JobID:        job.JobID,
+		PDFKey:       job.PDFKey,
+		PresignedURL: job.UploadURL,
 	})
 }
 

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"go-api/internal/model"
 	"go-api/internal/repository"
 	"time"
 
@@ -21,28 +22,30 @@ func NewJobService(redisRepo repository.JobRedisRepo, storage repository.Storage
 	}
 }
 
-func (s *JobService) InitUpload(ctx context.Context) (
-	jobID string,
-	pdfKey string,
-	uploadURL string,
-	err error,
-) {
-	jobID = uuid.NewString()
-	pdfKey = fmt.Sprintf("pdf/%s.pdf", jobID)
-
-	// Сначала проверяем MinIO - генерируем presigned URL
-	uploadURL, err = s.storage.PresignPut(ctx, pdfKey, 15*time.Minute)
-	if err != nil {
-		return
-	}
-
-	// Только если MinIO ОК - создаем запись в Redis
+func (s *JobService) InitUpload(ctx context.Context) (*model.Job, error) {
+	jobID := uuid.NewString()
+	pdfKey := fmt.Sprintf("pdf/%s.pdf", jobID)
 	now := time.Now()
-	if err = s.redisRepo.CreateJob(ctx, jobID, pdfKey, now); err != nil {
-		return
+
+	uploadURL, err := s.storage.PresignPut(ctx, pdfKey, 15*time.Minute)
+	if err != nil {
+		return nil, err
 	}
 
-	return
+	job := &model.Job{
+		JobID:     jobID,
+		Status:    model.JobStatusCreated,
+		PDFKey:    pdfKey,
+		UploadURL: uploadURL,
+		CreatedAt: now.Unix(),
+		UpdatedAt: now.Unix(),
+	}
+
+	if err = s.redisRepo.CreateJob(ctx, job); err != nil {
+		return nil, err
+	}
+
+	return job, nil
 }
 
 func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
