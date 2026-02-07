@@ -10,7 +10,7 @@ import (
 	"net/http"
 
 	"github.com/joho/godotenv"
-	// httpSwagger "github.com/swaggo/http-swagger"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type App struct {
@@ -52,7 +52,7 @@ func New(ctx context.Context) (*App, error) {
 			jobHandler.HandlePDFUploadRequest(w, r)
 		}
 	})
-	// mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	server := &http.Server{
 		Addr:    ":8080",
