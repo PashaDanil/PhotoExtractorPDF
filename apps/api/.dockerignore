@@ -1,0 +1,40 @@
+# VCS
+.git
+.gitignore
+
+# Env/secrets
+.env
+*.env
+.env.*
+
+# Go build output / temp
+tmp
+bin
+dist
+out
+*.exe
+*.test
+*.prof
+*.cover
+coverage*
+*.log
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# # Docs artifacts (опционально)
+# docs/swagger.json
+# docs/swagger.yaml
+
+# Vendor (если не используешь vendor)
+vendor
+
+# Docker artifacts
+**/.dockerignore
