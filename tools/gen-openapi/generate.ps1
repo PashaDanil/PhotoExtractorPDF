@@ -15,7 +15,14 @@ Write-Host "Generating Swagger documentation..." -ForegroundColor Cyan
 # Navigate to backend directory and run swag init
 Push-Location $backendDir
 try {
-    swag init -g main.go -d ./cmd/go-api,./internal/http/handler -o ./docs --outputTypes yaml,json
+    $output = swag init -g ./cmd/go-api/main.go --parseDependency --parseInternal -o ./docs 2>&1 
+    $filteredOutput = $output | Where-Object { 
+        $line = $_.ToString()
+        -not ($line -match "warning: failed to get package name in dir: \./") -and
+        -not ($line -match "warning: failed to evaluate const")
+    }
+    $filteredOutput | ForEach-Object { Write-Host $_ }
+    
     if ($LASTEXITCODE -ne 0) {
         throw "Swag init failed with exit code $LASTEXITCODE"
     }

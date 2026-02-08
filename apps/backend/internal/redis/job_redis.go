@@ -2,7 +2,7 @@ package redis
 
 import (
 	"context"
-	"time"
+	"go-api/internal/model"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -17,24 +17,33 @@ func NewJobRedis(rdb *redis.Client) *JobRedis {
 	}
 }
 
-func (r *JobRedis) CreateJob(ctx context.Context, jobID string, pdfKey string, now time.Time) error {
-	key := "job:" + jobID
-	timestamp := now.Unix()
+func (r *JobRedis) CreateJob(ctx context.Context, job *model.Job) error {
+	key := "job:" + job.JobID
 
-	return r.rdb.HSet(ctx, key, map[string]interface{}{
-		"status":     "created",
-		"pdf_key":    pdfKey,
-		"created_at": timestamp,
-		"updated_at": timestamp,
-	}).Err()
+	err := r.rdb.HSet(ctx, key, map[string]any{
+		"status":     job.Status,
+		"pdf_key":    job.PDFKey,
+		"upload_url": job.UploadURL,
+		"created_at": job.CreatedAt,
+		"updated_at": job.UpdatedAt,
+	})
+	if err != nil {
+		return err.Err()
+	}
+
+	return nil
 }
 
-func (r *JobRedis) MarkQueuedJob(ctx context.Context, jobID string, now time.Time) error {
-	key := "job:" + jobID
-	timestamp := now.Unix()
+func (r *JobRedis) MarkQueuedJob(ctx context.Context, job *model.Job) error {
+	key := "job:" + job.JobID
 
-	return r.rdb.HSet(ctx, key, map[string]interface{}{
-		"status":     "queued",
-		"updated_at": timestamp,
-	}).Err()
+	err := r.rdb.HSet(ctx, key, map[string]interface{}{
+		"status":     job.Status,
+		"updated_at": job.UpdatedAt,
+	})
+	if err != nil {
+		return err.Err()
+	}
+
+	return nil
 }

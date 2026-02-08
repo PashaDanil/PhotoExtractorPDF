@@ -1,31 +1,24 @@
 basePath: /
 definitions:
-  handler.ErrorResponse:
+  internal_echo_handlers.CompleteUploadResponse:
+    properties:
+      jobId:
+        type: string
+      status:
+        type: string
+    type: object
+  internal_echo_handlers.ErrorResponse:
     properties:
       error:
         type: string
     type: object
-  handler.InitUploadResponse:
+  internal_echo_handlers.InitUploadResponse:
     properties:
-      job_id:
+      jobId:
         type: string
-      pdf_key:
+      pdfKey:
         type: string
-      presigned_url:
-        type: string
-    type: object
-  handler.PDFUploadSuccessResponse:
-    properties:
-      message:
-        type: string
-      status:
-        type: string
-    type: object
-  handler.SuccessResponse:
-    properties:
-      message:
-        type: string
-      status:
+      uploadUrl:
         type: string
     type: object
 host: localhost:8080
@@ -37,50 +30,43 @@ info:
     API for uploading PDF files and extracting images from them
 
     This API provides endpoints for:
-    - Uploading PDF files directly or via presigned URLs
+    - Uploading PDF files via presigned URLs
     - Processing PDFs to extract images
     - Downloading extracted images as ZIP archives
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
   title: PDF to Images API
   version: "1.0"
 paths:
-  /jobs:
+  /upload:
     post:
       consumes:
       - application/json
       description: Create a new job and get a presigned URL for uploading a PDF file
-      operationId: initPDFUpload
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: Upload initialized successfully
           schema:
-            $ref: '#/definitions/handler.InitUploadResponse'
-        "405":
-          description: Method not allowed
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
+            $ref: '#/definitions/internal_echo_handlers.InitUploadResponse'
         "500":
           description: Failed to initialize upload
           schema:
-            $ref: '#/definitions/handler.ErrorResponse'
+            $ref: '#/definitions/internal_echo_handlers.ErrorResponse'
       summary: Initialize PDF upload
       tags:
       - Jobs
-  /jobs/{job_id}/complete-upload:
+  /upload/{jobId}/complete:
     post:
       consumes:
       - application/json
       description: Mark the PDF upload as complete and start processing
-      operationId: completePDFUpload
       parameters:
       - description: Job ID
         in: path
-        name: job_id
+        name: jobId
         required: true
         type: string
       produces:
@@ -89,71 +75,12 @@ paths:
         "200":
           description: Upload completed successfully
           schema:
-            $ref: '#/definitions/handler.SuccessResponse'
-        "400":
-          description: Invalid path or job id
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-        "405":
-          description: Method not allowed
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
+            $ref: '#/definitions/internal_echo_handlers.CompleteUploadResponse'
         "500":
           description: Failed to complete upload
           schema:
-            $ref: '#/definitions/handler.ErrorResponse'
+            $ref: '#/definitions/internal_echo_handlers.ErrorResponse'
       summary: Complete PDF upload
       tags:
       - Jobs
-  /pdf:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload a PDF file for processing
-      operationId: uploadPDF
-      parameters:
-      - description: PDF file to upload
-        in: formData
-        name: pdf
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: PDF uploaded successfully
-          schema:
-            $ref: '#/definitions/handler.PDFUploadSuccessResponse'
-        "400":
-          description: Invalid request or file format
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-      summary: Upload PDF file
-      tags:
-      - PDF
-  /zip:
-    get:
-      description: Download all processed images from PDFs as a ZIP archive
-      operationId: getZip
-      produces:
-      - application/zip
-      responses:
-        "200":
-          description: ZIP file
-          schema:
-            type: file
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-      summary: Download processed images as ZIP
-      tags:
-      - ZIP
-schemes:
-- http
-- https
 swagger: "2.0"

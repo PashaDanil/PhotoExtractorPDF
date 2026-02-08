@@ -12,10 +12,9 @@ import (
 // @description API for uploading PDF files and extracting images from them
 // @description
 // @description This API provides endpoints for:
-// @description - Uploading PDF files directly or via presigned URLs
+// @description - Uploading PDF files via presigned URLs
 // @description - Processing PDFs to extract images
 // @description - Downloading extracted images as ZIP archives
-// @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
 // @contact.email support@example.com
@@ -25,7 +24,6 @@ import (
 
 // @host localhost:8080
 // @BasePath /
-// @schemes http https
 
 func main() {
 	ctx := context.Background()
