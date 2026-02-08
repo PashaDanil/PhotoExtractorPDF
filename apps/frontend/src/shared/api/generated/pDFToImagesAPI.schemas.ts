@@ -5,33 +5,23 @@
  * API for uploading PDF files and extracting images from them
 
 This API provides endpoints for:
-- Uploading PDF files directly or via presigned URLs
+- Uploading PDF files via presigned URLs
 - Processing PDFs to extract images
 - Downloading extracted images as ZIP archives
  * OpenAPI spec version: 1.0
  */
-export interface HandlerErrorResponse {
+export interface InternalEchoHandlersCompleteUploadResponse {
+  jobId?: string;
+  status?: string;
+}
+
+export interface InternalEchoHandlersErrorResponse {
   error?: string;
 }
 
-export interface HandlerInitUploadResponse {
-  job_id?: string;
-  pdf_key?: string;
-  presigned_url?: string;
+export interface InternalEchoHandlersInitUploadResponse {
+  jobId?: string;
+  pdfKey?: string;
+  uploadUrl?: string;
 }
-
-export interface HandlerPDFUploadSuccessResponse {
-  message?: string;
-  status?: string;
-}
-
-export interface HandlerSuccessResponse {
-  message?: string;
-  status?: string;
-}
-
-export type UploadPDFBody = {
-  /** PDF file to upload */
-  pdf: Blob;
-};
 

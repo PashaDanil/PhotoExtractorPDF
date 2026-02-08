@@ -9,7 +9,6 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
             "email": "support@example.com"
@@ -23,7 +22,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/jobs": {
+        "/upload": {
             "post": {
                 "description": "Create a new job and get a presigned URL for uploading a PDF file",
                 "consumes": [
@@ -36,30 +35,23 @@ const docTemplate = `{
                     "Jobs"
                 ],
                 "summary": "Initialize PDF upload",
-                "operationId": "initPDFUpload",
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "Upload initialized successfully",
                         "schema": {
-                            "$ref": "#/definitions/handler.InitUploadResponse"
-                        }
-                    },
-                    "405": {
-                        "description": "Method not allowed",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_echo_handlers.InitUploadResponse"
                         }
                     },
                     "500": {
                         "description": "Failed to initialize upload",
                         "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_echo_handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/jobs/{job_id}/complete-upload": {
+        "/upload/{jobId}/complete": {
             "post": {
                 "description": "Mark the PDF upload as complete and start processing",
                 "consumes": [
@@ -72,12 +64,11 @@ const docTemplate = `{
                     "Jobs"
                 ],
                 "summary": "Complete PDF upload",
-                "operationId": "completePDFUpload",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Job ID",
-                        "name": "job_id",
+                        "name": "jobId",
                         "in": "path",
                         "required": true
                     }
@@ -86,97 +77,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Upload completed successfully",
                         "schema": {
-                            "$ref": "#/definitions/handler.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid path or job id",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
-                        }
-                    },
-                    "405": {
-                        "description": "Method not allowed",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_echo_handlers.CompleteUploadResponse"
                         }
                     },
                     "500": {
                         "description": "Failed to complete upload",
                         "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/pdf": {
-            "post": {
-                "description": "Upload a PDF file for processing",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "PDF"
-                ],
-                "summary": "Upload PDF file",
-                "operationId": "uploadPDF",
-                "parameters": [
-                    {
-                        "type": "file",
-                        "description": "PDF file to upload",
-                        "name": "pdf",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "PDF uploaded successfully",
-                        "schema": {
-                            "$ref": "#/definitions/handler.PDFUploadSuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request or file format",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/zip": {
-            "get": {
-                "description": "Download all processed images from PDFs as a ZIP archive",
-                "produces": [
-                    "application/zip"
-                ],
-                "tags": [
-                    "ZIP"
-                ],
-                "summary": "Download processed images as ZIP",
-                "operationId": "getZip",
-                "responses": {
-                    "200": {
-                        "description": "ZIP file",
-                        "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_echo_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -184,7 +91,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handler.ErrorResponse": {
+        "internal_echo_handlers.CompleteUploadResponse": {
+            "type": "object",
+            "properties": {
+                "jobId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_echo_handlers.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -192,38 +110,16 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.InitUploadResponse": {
+        "internal_echo_handlers.InitUploadResponse": {
             "type": "object",
             "properties": {
-                "job_id": {
+                "jobId": {
                     "type": "string"
                 },
-                "pdf_key": {
+                "pdfKey": {
                     "type": "string"
                 },
-                "presigned_url": {
-                    "type": "string"
-                }
-            }
-        },
-        "handler.PDFUploadSuccessResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "handler.SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "status": {
+                "uploadUrl": {
                     "type": "string"
                 }
             }
@@ -236,9 +132,9 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
 	BasePath:         "/",
-	Schemes:          []string{"http", "https"},
+	Schemes:          []string{},
 	Title:            "PDF to Images API",
-	Description:      "API for uploading PDF files and extracting images from them\n\nThis API provides endpoints for:\n- Uploading PDF files directly or via presigned URLs\n- Processing PDFs to extract images\n- Downloading extracted images as ZIP archives",
+	Description:      "API for uploading PDF files and extracting images from them\n\nThis API provides endpoints for:\n- Uploading PDF files via presigned URLs\n- Processing PDFs to extract images\n- Downloading extracted images as ZIP archives",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

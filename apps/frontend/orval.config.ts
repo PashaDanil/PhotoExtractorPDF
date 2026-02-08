@@ -10,12 +10,6 @@ export default defineConfig({
       target: "src/shared/api/generated",
       client: "fetch",
       clean: true,
-      override: {
-        mutator: {
-          path: "src/shared/api/mutator.ts",
-          name: "customFetch",
-        },
-      },
     },
   },
 });
