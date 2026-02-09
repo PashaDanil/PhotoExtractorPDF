@@ -1,15 +1,12 @@
-import { defineConfig } from "orval";
+import { defineConfig } from 'orval';
 
 export default defineConfig({
-  backend: {
-    input: {
-      target: "../../libs/contracts/openapi/backend.yaml",
-    },
+  imgpdf: {
+    input: '../../libs/contracts/openapi/imgpdf.yaml',
     output: {
-      mode: "split",
-      target: "src/shared/api/generated",
-      client: "fetch",
-      clean: true,
+        client: 'react-query',
+        target: './src/api/imgpdf.ts',
+        schemas: './src/api/model',
     },
   },
 });

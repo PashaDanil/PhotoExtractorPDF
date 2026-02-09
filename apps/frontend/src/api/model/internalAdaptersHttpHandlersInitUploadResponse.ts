@@ -5,14 +5,6 @@
  * API for converting PDF documents to images
  * OpenAPI spec version: 1.0
  */
-export interface InternalAdaptersHttpHandlersCompleteUploadResponse {
-  job_id?: string;
-  status?: string;
-}
-
-export interface InternalAdaptersHttpHandlersErrorResponse {
-  error?: string;
-}
 
 export interface InternalAdaptersHttpHandlersInitUploadResponse {
   created_at?: number;
@@ -20,4 +12,3 @@ export interface InternalAdaptersHttpHandlersInitUploadResponse {
   status?: string;
   upload_url?: string;
 }
-
