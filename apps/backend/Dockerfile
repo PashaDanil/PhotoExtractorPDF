@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/go-api ./cmd/go-api
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/api ./cmd/api
 
 # Optional:
 # To bind to a TCP port, runtime parameters must be supplied to the docker command.
@@ -24,4 +24,4 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /app/go-api ./cmd/go-api
 EXPOSE 8080
 
 # Run
-CMD ["/app/go-api"]
+CMD ["/app/api"]

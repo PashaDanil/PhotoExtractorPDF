@@ -1,58 +1,47 @@
 package app
 
 import (
-	"context"
-	"go-api/internal/echo"
-	"go-api/internal/echo/handlers"
-	"go-api/internal/redis"
-	"go-api/internal/service"
-	"go-api/internal/storage"
-	"log"
-
-	"github.com/joho/godotenv"
+	_ "api/docs"
+	"api/internal/adapters/http"
+	"api/internal/adapters/http/handlers"
+	"api/internal/adapters/minio"
+	"api/internal/adapters/redis"
+	"api/internal/services"
 )
 
 type App struct {
-	s *echo.Server
+	s *http.Server
 }
 
-func New(ctx context.Context) (*App, error) {
+func New() (*App, error) {
 	a := &App{}
-	_ = godotenv.Load(".env")
 
-	rdb, err := redis.New(ctx)
+	rdb, err := redis.New()
 	if err != nil {
 		return nil, err
 	}
 
-	minioClient, err := storage.New(ctx)
+	mio, err := minio.New()
 	if err != nil {
 		return nil, err
 	}
 
-	jobRedis := redis.NewJobRedis(rdb)
-	minioStorage := storage.NewStorage(minioClient)
+	jobStore := redis.NewJobStoreRepo(rdb)
+	objectStorage := minio.NewObjectStorageRepo(mio)
 
-	jobService := service.NewJobService(jobRedis, minioStorage)
+	jobService := services.NewJobService(jobStore, objectStorage)
 	jobHandler := handlers.NewJobHandler(jobService)
 
-	s, err := echo.New(
-		jobHandler,
-	)
+	server, err := http.New(jobHandler)
 	if err != nil {
 		return nil, err
 	}
 
-	a.s = s
-
-	log.Println("app initialized")
+	a.s = server
 
 	return a, nil
 }
 
-func (a *App) Run() error {
+func (a *App) Run() {
 	a.s.Run()
-	log.Println("server started on :8080")
-
-	return nil
 }

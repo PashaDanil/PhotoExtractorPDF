@@ -1,9 +1,10 @@
-package echo
+package http
 
 import (
-	"go-api/internal/echo/handlers"
+	"api/internal/adapters/http/handlers"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
@@ -18,10 +19,13 @@ func New(
 
 	e := echo.New()
 
+	e.Use(middleware.RequestLogger())
+	e.Use(middleware.Recover())
+
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
 	e.POST("/upload", jobHandler.HandlePDFUploadRequest)
 	e.POST("/upload/:jobId/complete", jobHandler.HandlePDFUploadComplete)
-	// Swagger
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	s.e = e
 

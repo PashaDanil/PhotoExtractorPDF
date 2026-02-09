@@ -1,23 +1,21 @@
 package redis
 
 import (
+	"api/internal/domain/job"
 	"context"
-	"go-api/internal/model"
 
 	"github.com/redis/go-redis/v9"
 )
 
-type JobRedis struct {
+type JobStoreRepo struct {
 	rdb *redis.Client
 }
 
-func NewJobRedis(rdb *redis.Client) *JobRedis {
-	return &JobRedis{
-		rdb: rdb,
-	}
+func NewJobStoreRepo(rdb *redis.Client) *JobStoreRepo {
+	return &JobStoreRepo{rdb: rdb}
 }
 
-func (r *JobRedis) CreateJob(ctx context.Context, job *model.Job) error {
+func (r *JobStoreRepo) CreateJob(ctx context.Context, job *job.Job) error {
 	key := "job:" + job.JobID
 
 	err := r.rdb.HSet(ctx, key, map[string]any{
@@ -34,10 +32,10 @@ func (r *JobRedis) CreateJob(ctx context.Context, job *model.Job) error {
 	return nil
 }
 
-func (r *JobRedis) MarkQueuedJob(ctx context.Context, job *model.Job) error {
+func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, job *job.Job) error {
 	key := "job:" + job.JobID
 
-	err := r.rdb.HSet(ctx, key, map[string]interface{}{
+	err := r.rdb.HSet(ctx, key, map[string]any{
 		"status":     job.Status,
 		"updated_at": job.UpdatedAt,
 	})

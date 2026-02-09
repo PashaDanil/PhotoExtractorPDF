@@ -9,6 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
+        "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
             "email": "support@example.com"
@@ -24,7 +25,7 @@ const docTemplate = `{
     "paths": {
         "/upload": {
             "post": {
-                "description": "Create a new job and get a presigned URL for uploading a PDF file",
+                "description": "Initialize a new PDF upload job and get presigned upload URL",
                 "consumes": [
                     "application/json"
                 ],
@@ -32,20 +33,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Jobs"
+                    "upload"
                 ],
                 "summary": "Initialize PDF upload",
                 "responses": {
                     "200": {
-                        "description": "Upload initialized successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_echo_handlers.InitUploadResponse"
+                            "$ref": "#/definitions/internal_adapters_http_handlers.InitUploadResponse"
                         }
                     },
                     "500": {
-                        "description": "Failed to initialize upload",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_echo_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapters_http_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -53,7 +54,7 @@ const docTemplate = `{
         },
         "/upload/{jobId}/complete": {
             "post": {
-                "description": "Mark the PDF upload as complete and start processing",
+                "description": "Mark the PDF upload as complete and queue for processing",
                 "consumes": [
                     "application/json"
                 ],
@@ -61,7 +62,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Jobs"
+                    "upload"
                 ],
                 "summary": "Complete PDF upload",
                 "parameters": [
@@ -75,15 +76,15 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Upload completed successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_echo_handlers.CompleteUploadResponse"
+                            "$ref": "#/definitions/internal_adapters_http_handlers.CompleteUploadResponse"
                         }
                     },
                     "500": {
-                        "description": "Failed to complete upload",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_echo_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapters_http_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -91,36 +92,46 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "internal_echo_handlers.CompleteUploadResponse": {
+        "internal_adapters_http_handlers.CompleteUploadResponse": {
             "type": "object",
             "properties": {
-                "jobId": {
-                    "type": "string"
+                "job_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "queued"
                 }
             }
         },
-        "internal_echo_handlers.ErrorResponse": {
+        "internal_adapters_http_handlers.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "internal server error"
                 }
             }
         },
-        "internal_echo_handlers.InitUploadResponse": {
+        "internal_adapters_http_handlers.InitUploadResponse": {
             "type": "object",
             "properties": {
-                "jobId": {
-                    "type": "string"
+                "created_at": {
+                    "type": "integer",
+                    "example": 1738800000
                 },
-                "pdfKey": {
-                    "type": "string"
+                "job_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
-                "uploadUrl": {
-                    "type": "string"
+                "status": {
+                    "type": "string",
+                    "example": "uploading"
+                },
+                "upload_url": {
+                    "type": "string",
+                    "example": "https://minio.example.com/upload?signature=..."
                 }
             }
         }
@@ -134,7 +145,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "PDF to Images API",
-	Description:      "API for uploading PDF files and extracting images from them\n\nThis API provides endpoints for:\n- Uploading PDF files via presigned URLs\n- Processing PDFs to extract images\n- Downloading extracted images as ZIP archives",
+	Description:      "API for converting PDF documents to images",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
