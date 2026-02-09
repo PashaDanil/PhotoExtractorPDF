@@ -15,15 +15,12 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      # minio-init:
-      #   condition: service_completed_successfully
     networks:
       - imgpdf
     volumes:
       - ../../apps/backend:/app
       - go-build-cache:/root/.cache/go-build
       - go-mod-cache:/go/pkg/mod
-    command: [ "air", "-c", ".air.toml" ]
     restart: unless-stopped
 
   frontend:
@@ -84,19 +81,6 @@ services:
     networks:
       - imgpdf
     restart: unless-stopped
-  # minio-init:
-  #   image: minio/mc:RELEASE.2025-01-17T23-25-50Z
-  #   container_name: minio-init
-  #   env_file:
-  #     - ./.env
-  #   depends_on:
-  #     - minio
-  #   networks:
-  #     - imgpdf
-  #   entrypoint: >
-  #     /bin/sh -c " until mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}; do
-  #       echo 'Waiting for MinIO...'; sleep 1;
-  #     done; mc mb -p local/imgpdf || true; echo 'MinIO bucket imgpdf is ready'; "
 
 volumes:
   go-build-cache:
