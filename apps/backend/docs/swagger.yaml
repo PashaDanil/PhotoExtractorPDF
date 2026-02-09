@@ -1,24 +1,33 @@
 basePath: /
 definitions:
-  internal_echo_handlers.CompleteUploadResponse:
+  internal_adapters_http_handlers.CompleteUploadResponse:
     properties:
-      jobId:
+      job_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       status:
+        example: queued
         type: string
     type: object
-  internal_echo_handlers.ErrorResponse:
+  internal_adapters_http_handlers.ErrorResponse:
     properties:
       error:
+        example: internal server error
         type: string
     type: object
-  internal_echo_handlers.InitUploadResponse:
+  internal_adapters_http_handlers.InitUploadResponse:
     properties:
-      jobId:
+      created_at:
+        example: 1738800000
+        type: integer
+      job_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
-      pdfKey:
+      status:
+        example: uploading
         type: string
-      uploadUrl:
+      upload_url:
+        example: https://minio.example.com/upload?signature=...
         type: string
     type: object
 host: localhost:8080
@@ -26,16 +35,11 @@ info:
   contact:
     email: support@example.com
     name: API Support
-  description: |-
-    API for uploading PDF files and extracting images from them
-
-    This API provides endpoints for:
-    - Uploading PDF files via presigned URLs
-    - Processing PDFs to extract images
-    - Downloading extracted images as ZIP archives
+  description: API for converting PDF documents to images
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
   title: PDF to Images API
   version: "1.0"
 paths:
@@ -43,26 +47,26 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new job and get a presigned URL for uploading a PDF file
+      description: Initialize a new PDF upload job and get presigned upload URL
       produces:
       - application/json
       responses:
         "200":
-          description: Upload initialized successfully
+          description: OK
           schema:
-            $ref: '#/definitions/internal_echo_handlers.InitUploadResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.InitUploadResponse'
         "500":
-          description: Failed to initialize upload
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_echo_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.ErrorResponse'
       summary: Initialize PDF upload
       tags:
-      - Jobs
+      - upload
   /upload/{jobId}/complete:
     post:
       consumes:
       - application/json
-      description: Mark the PDF upload as complete and start processing
+      description: Mark the PDF upload as complete and queue for processing
       parameters:
       - description: Job ID
         in: path
@@ -73,14 +77,14 @@ paths:
       - application/json
       responses:
         "200":
-          description: Upload completed successfully
+          description: OK
           schema:
-            $ref: '#/definitions/internal_echo_handlers.CompleteUploadResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.CompleteUploadResponse'
         "500":
-          description: Failed to complete upload
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_echo_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.ErrorResponse'
       summary: Complete PDF upload
       tags:
-      - Jobs
+      - upload
 swagger: "2.0"

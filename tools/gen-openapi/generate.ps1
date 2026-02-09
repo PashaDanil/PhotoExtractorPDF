@@ -15,7 +15,7 @@ Write-Host "Generating Swagger documentation..." -ForegroundColor Cyan
 # Navigate to backend directory and run swag init
 Push-Location $backendDir
 try {
-    $output = swag init -g ./cmd/go-api/main.go --parseDependency --parseInternal -o ./docs 2>&1 
+    $output = swag init -g ./cmd/api/main.go --parseDependency --parseInternal -o ./docs 2>&1 
     $filteredOutput = $output | Where-Object { 
         $line = $_.ToString()
         -not ($line -match "warning: failed to get package name in dir: \./") -and
