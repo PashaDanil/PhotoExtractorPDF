@@ -34,7 +34,7 @@ try {
 # Copy the generated YAML to contracts directory
 Write-Host "Copying OpenAPI spec to contracts..." -ForegroundColor Cyan
 $sourceYaml = Join-Path $backendDir "docs\swagger.yaml"
-$targetYaml = Join-Path $contractsDir "backend.yaml"
+$targetYaml = Join-Path $contractsDir "imgpdf.yaml"
 
 if (Test-Path $sourceYaml) {
     Copy-Item $sourceYaml $targetYaml -Force
