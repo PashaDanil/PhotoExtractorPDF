@@ -1,31 +1,33 @@
 basePath: /
 definitions:
-  handler.ErrorResponse:
-    properties:
-      error:
-        type: string
-    type: object
-  handler.InitUploadResponse:
+  internal_adapters_http_handlers.CompleteUploadResponse:
     properties:
       job_id:
-        type: string
-      pdf_key:
-        type: string
-      presigned_url:
-        type: string
-    type: object
-  handler.PDFUploadSuccessResponse:
-    properties:
-      message:
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       status:
+        example: queued
         type: string
     type: object
-  handler.SuccessResponse:
+  internal_adapters_http_handlers.ErrorResponse:
     properties:
-      message:
+      error:
+        example: internal server error
+        type: string
+    type: object
+  internal_adapters_http_handlers.InitUploadResponse:
+    properties:
+      created_at:
+        example: 1738800000
+        type: integer
+      job_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       status:
+        example: uploading
+        type: string
+      upload_url:
+        example: https://minio.example.com/upload?signature=...
         type: string
     type: object
 host: localhost:8080
@@ -33,13 +35,7 @@ info:
   contact:
     email: support@example.com
     name: API Support
-  description: |-
-    API for uploading PDF files and extracting images from them
-
-    This API provides endpoints for:
-    - Uploading PDF files directly or via presigned URLs
-    - Processing PDFs to extract images
-    - Downloading extracted images as ZIP archives
+  description: API for converting PDF documents to images
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -47,113 +43,48 @@ info:
   title: PDF to Images API
   version: "1.0"
 paths:
-  /jobs:
+  /upload:
     post:
       consumes:
       - application/json
-      description: Create a new job and get a presigned URL for uploading a PDF file
-      operationId: initPDFUpload
+      description: Initialize a new PDF upload job and get presigned upload URL
       produces:
       - application/json
       responses:
-        "201":
-          description: Upload initialized successfully
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/handler.InitUploadResponse'
-        "405":
-          description: Method not allowed
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.InitUploadResponse'
         "500":
-          description: Failed to initialize upload
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.ErrorResponse'
       summary: Initialize PDF upload
       tags:
-      - Jobs
-  /jobs/{job_id}/complete-upload:
+      - upload
+  /upload/{jobId}/complete:
     post:
       consumes:
       - application/json
-      description: Mark the PDF upload as complete and start processing
-      operationId: completePDFUpload
+      description: Mark the PDF upload as complete and queue for processing
       parameters:
       - description: Job ID
         in: path
-        name: job_id
+        name: jobId
         required: true
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Upload completed successfully
+          description: OK
           schema:
-            $ref: '#/definitions/handler.SuccessResponse'
-        "400":
-          description: Invalid path or job id
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-        "405":
-          description: Method not allowed
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.CompleteUploadResponse'
         "500":
-          description: Failed to complete upload
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.ErrorResponse'
       summary: Complete PDF upload
       tags:
-      - Jobs
-  /pdf:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload a PDF file for processing
-      operationId: uploadPDF
-      parameters:
-      - description: PDF file to upload
-        in: formData
-        name: pdf
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: PDF uploaded successfully
-          schema:
-            $ref: '#/definitions/handler.PDFUploadSuccessResponse'
-        "400":
-          description: Invalid request or file format
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-      summary: Upload PDF file
-      tags:
-      - PDF
-  /zip:
-    get:
-      description: Download all processed images from PDFs as a ZIP archive
-      operationId: getZip
-      produces:
-      - application/zip
-      responses:
-        "200":
-          description: ZIP file
-          schema:
-            type: file
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-      summary: Download processed images as ZIP
-      tags:
-      - ZIP
-schemes:
-- http
-- https
+      - upload
 swagger: "2.0"
