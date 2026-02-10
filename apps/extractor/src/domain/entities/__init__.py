@@ -1,6 +1,12 @@
-# adapters/ocr/__init__.py
+from .page import Page, PageRaster
+from .bounding_box import BoundingBox
+from .image import Image
+from .document import Document
 
-from .image import BoundingBox, Image
-from .document import Page, Document
-
-__all__ = ["BoundingBox", "Image", "Page", "Document"]
+__all__ = [
+    "Page",
+    "PageRaster",
+    "BoundingBox",
+    "Image",
+    "Document",
+]
