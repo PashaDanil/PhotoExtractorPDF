@@ -41,7 +41,8 @@ class PyMuPDFHandle(AsyncDocumentHandle):
             page_num=page_num,
             width=pix.w,
             height=pix.h,
-            image=img_array
+            image=img_array,
+            render_dpi = dpi
         )
 
     async def iter_batches(

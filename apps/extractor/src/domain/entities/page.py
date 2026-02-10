@@ -36,5 +36,6 @@ class PageRaster:
     width: int
     height: int
     image: npt.NDArray[np.uint8]
+    render_dpi: int = 72
 
 
