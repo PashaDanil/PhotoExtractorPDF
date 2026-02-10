@@ -1,18 +1,7 @@
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, List, Iterable
-from dataclasses import dataclass
-import numpy as np
-import numpy.typing as npt
-
-
-@dataclass(frozen=True)
-class PageRaster:
-    """DTO изображения страницы"""
-    page_num: int
-    width: int
-    height: int
-    image: npt.NDArray[np.uint8]
+from ...domain.entities.page import PageRaster
 
 
 class AsyncDocumentHandle(ABC):

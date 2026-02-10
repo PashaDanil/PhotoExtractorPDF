@@ -5,7 +5,8 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Iterable, List
 from itertools import islice
-from ....application.ports.pdf_reader import PageRaster, AsyncDocumentHandle, PDFReader
+from ....domain.entities.page import PageRaster
+from ....application.ports.pdf_reader import AsyncDocumentHandle, PDFReader
 
 
 class PyMuPDFHandle(AsyncDocumentHandle):
