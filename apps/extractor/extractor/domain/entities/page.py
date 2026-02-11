@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from uuid import UUID
-from image import Image
+from .image import Image
 from typing import List
 import numpy as np
 import numpy.typing as npt

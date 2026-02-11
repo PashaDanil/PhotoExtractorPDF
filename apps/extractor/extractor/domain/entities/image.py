@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Self
 from uuid import UUID, uuid4
-from bounding_box import BoundingBox
+from .bounding_box import BoundingBox
 
 @dataclass(frozen=True, slots=True)
 class Image:

@@ -7,12 +7,12 @@ export default defineConfig({
     },
     output: {
       mode: "split",
-      target: "src/shared/api/generated",
+      target: "extractor/shared/api/generated",
       client: "fetch",
       clean: true,
       override: {
         mutator: {
-          path: "src/shared/api/mutator.ts",
+          path: "extractor/shared/api/mutator.ts",
           name: "customFetch",
         },
       },

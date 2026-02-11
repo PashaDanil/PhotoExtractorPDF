@@ -67,7 +67,7 @@ WORKDIR /app
 COPY --from=builder --chown=appuser:appgroup /root/.local /home/appuser/.local
 
 # Copy application code
-COPY --chown=appuser:appgroup src ./src
+COPY --chown=appuser:appgroup extractor ./src
 
 # Copy YOLOv11 model
 COPY --chown=appuser:appgroup yolov11m-doclaynet.pt ./

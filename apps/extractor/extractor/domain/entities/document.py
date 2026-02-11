@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 from typing import List
-from page import Page
+from .page import Page
 
 @dataclass
 class Document:
