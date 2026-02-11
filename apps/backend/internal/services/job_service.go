@@ -31,7 +31,7 @@ func (s *JobService) InitUpload(ctx context.Context) (*job.Job, error) {
 		return nil, err
 	}
 
-	job := &job.Job{
+	jb := &job.Job{
 		JobID:     jobID,
 		Status:    job.JobStatusCreated,
 		PDFKey:    pdfKey,
@@ -40,23 +40,23 @@ func (s *JobService) InitUpload(ctx context.Context) (*job.Job, error) {
 		UpdatedAt: now.Unix(),
 	}
 
-	if err = s.jobStore.CreateJob(ctx, job); err != nil {
+	if err = s.jobStore.CreateJob(ctx, jb); err != nil {
 		return nil, err
 	}
 
-	return job, nil
+	return jb, nil
 }
 
 func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
 	now := time.Now()
 
-	job := &job.Job{
+	jb := &job.Job{
 		JobID:     jobID,
 		Status:    job.JobStatusQueued,
 		UpdatedAt: now.Unix(),
 	}
 
-	err := s.jobStore.MarkQueuedJob(ctx, job)
+	err := s.jobStore.MarkQueuedJob(ctx, jb)
 	if err != nil {
 		return err
 	}

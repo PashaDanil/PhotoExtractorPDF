@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface InternalAdaptersHttpHandlersInitUploadResponse {
-  job_id?: string;
-  upload_url?: string;
+export interface InternalAdaptersHttpHandlersServerErrorResponse {
+  error?: string;
 }

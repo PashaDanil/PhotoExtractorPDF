@@ -9,25 +9,31 @@ definitions:
         example: queued
         type: string
     type: object
-  internal_adapters_http_handlers.ErrorResponse:
+  internal_adapters_http_handlers.ConflictResponse:
     properties:
       error:
-        example: internal server error
+        example: job already completed
         type: string
     type: object
   internal_adapters_http_handlers.InitUploadResponse:
     properties:
-      created_at:
-        example: 1738800000
-        type: integer
       job_id:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
-      status:
-        example: uploading
-        type: string
       upload_url:
         example: https://minio.example.com/upload?signature=...
+        type: string
+    type: object
+  internal_adapters_http_handlers.NotFoundResponse:
+    properties:
+      error:
+        example: jobId not found
+        type: string
+    type: object
+  internal_adapters_http_handlers.ServerErrorResponse:
+    properties:
+      error:
+        example: internal server error
         type: string
     type: object
 host: localhost:8080
@@ -51,14 +57,14 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/internal_adapters_http_handlers.InitUploadResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapters_http_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.ServerErrorResponse'
       summary: Initialize PDF upload
       tags:
       - upload
@@ -76,14 +82,22 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "202":
+          description: Accepted
           schema:
             $ref: '#/definitions/internal_adapters_http_handlers.CompleteUploadResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_adapters_http_handlers.NotFoundResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_adapters_http_handlers.ConflictResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapters_http_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_adapters_http_handlers.ServerErrorResponse'
       summary: Complete PDF upload
       tags:
       - upload

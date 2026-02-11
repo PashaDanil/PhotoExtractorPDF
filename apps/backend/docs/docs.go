@@ -37,8 +37,8 @@ const docTemplate = `{
                 ],
                 "summary": "Initialize PDF upload",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/internal_adapters_http_handlers.InitUploadResponse"
                         }
@@ -46,7 +46,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_http_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapters_http_handlers.ServerErrorResponse"
                         }
                     }
                 }
@@ -75,16 +75,28 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "202": {
+                        "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/internal_adapters_http_handlers.CompleteUploadResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_adapters_http_handlers.NotFoundResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/internal_adapters_http_handlers.ConflictResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_http_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapters_http_handlers.ServerErrorResponse"
                         }
                     }
                 }
@@ -105,33 +117,43 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_adapters_http_handlers.ErrorResponse": {
+        "internal_adapters_http_handlers.ConflictResponse": {
             "type": "object",
             "properties": {
                 "error": {
                     "type": "string",
-                    "example": "internal server error"
+                    "example": "job already completed"
                 }
             }
         },
         "internal_adapters_http_handlers.InitUploadResponse": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "integer",
-                    "example": 1738800000
-                },
                 "job_id": {
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
-                "status": {
-                    "type": "string",
-                    "example": "uploading"
-                },
                 "upload_url": {
                     "type": "string",
                     "example": "https://minio.example.com/upload?signature=..."
+                }
+            }
+        },
+        "internal_adapters_http_handlers.NotFoundResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "jobId not found"
+                }
+            }
+        },
+        "internal_adapters_http_handlers.ServerErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "internal server error"
                 }
             }
         }

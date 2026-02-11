@@ -2,7 +2,9 @@ package redis
 
 import (
 	"api/internal/domain/job"
+	"api/pkg/errorx"
 	"context"
+	"fmt"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -15,15 +17,13 @@ func NewJobStoreRepo(rdb *redis.Client) *JobStoreRepo {
 	return &JobStoreRepo{rdb: rdb}
 }
 
-func (r *JobStoreRepo) CreateJob(ctx context.Context, job *job.Job) error {
-	key := "job:" + job.JobID
-
-	err := r.rdb.HSet(ctx, key, map[string]any{
-		"status":     job.Status,
-		"pdf_key":    job.PDFKey,
-		"upload_url": job.UploadURL,
-		"created_at": job.CreatedAt,
-		"updated_at": job.UpdatedAt,
+func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *job.Job) error {
+	err := r.rdb.HSet(ctx, jb.JobID, map[string]any{
+		"status":     jb.Status,
+		"pdf_key":    jb.PDFKey,
+		"upload_url": jb.UploadURL,
+		"created_at": jb.CreatedAt,
+		"updated_at": jb.UpdatedAt,
 	})
 	if err != nil {
 		return err.Err()
@@ -32,15 +32,26 @@ func (r *JobStoreRepo) CreateJob(ctx context.Context, job *job.Job) error {
 	return nil
 }
 
-func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, job *job.Job) error {
-	key := "job:" + job.JobID
-
-	err := r.rdb.HSet(ctx, key, map[string]any{
-		"status":     job.Status,
-		"updated_at": job.UpdatedAt,
-	})
+func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, jb *job.Job) error {
+	currentStatus, err := r.rdb.HGet(ctx, jb.JobID, "status").Result()
 	if err != nil {
-		return err.Err()
+		// если пусто по ключу ErrNotFound 404
+		if err == redis.Nil {
+			return fmt.Errorf("job %s not found: %w", jb.JobID, errorx.ErrNotFound)
+		}
+		return err
+	}
+	// если уже queued ErrAlreadyCompleted 409
+	if currentStatus == string(job.JobStatusQueued) {
+		return fmt.Errorf("job %s already queued: %w", jb.JobID, errorx.ErrAlreadyCompleted)
+	}
+
+	cmd := r.rdb.HSet(ctx, jb.JobID, map[string]any{
+		"status":     jb.Status,
+		"updated_at": jb.UpdatedAt,
+	})
+	if err := cmd.Err(); err != nil {
+		return err
 	}
 
 	return nil

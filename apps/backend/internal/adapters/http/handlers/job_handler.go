@@ -3,6 +3,8 @@ package handlers
 import (
 	"api/internal/domain/job"
 	"api/internal/services"
+	"api/pkg/errorx"
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -24,23 +26,21 @@ func NewJobHandler(jobService *services.JobService) *JobHandler {
 // @Tags upload
 // @Accept json
 // @Produce json
-// @Success 200 {object} InitUploadResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 201 {object} InitUploadResponse
+// @Failure 500 {object} ServerErrorResponse
 // @Router /upload [post]
 func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
-	job, err := h.jobService.InitUpload(c.Request().Context())
+	jb, err := h.jobService.InitUpload(c.Request().Context())
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		return c.JSON(http.StatusInternalServerError, ServerErrorResponse{Error: err.Error()})
 	}
 
 	response := InitUploadResponse{
-		JobID:     job.JobID,
-		Status:    string(job.Status),
-		UploadURL: job.UploadURL,
-		CreatedAt: job.CreatedAt,
+		JobID:     jb.JobID,
+		UploadURL: jb.UploadURL,
 	}
 
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusCreated, response)
 }
 
 // HandlePDFUploadComplete godoc
@@ -50,15 +50,23 @@ func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param jobId path string true "Job ID"
-// @Success 200 {object} CompleteUploadResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 202 {object} CompleteUploadResponse
+// @Failure 404 {object} NotFoundResponse
+// @Failure 409 {object} ConflictResponse
+// @Failure 500 {object} ServerErrorResponse
 // @Router /upload/{jobId}/complete [post]
 func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
 	jobID := c.Param("jobId")
 
 	err := h.jobService.CompleteUpload(c.Request().Context(), jobID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		if errors.Is(err, errorx.ErrNotFound) {
+			return c.JSON(http.StatusNotFound, NotFoundResponse{Error: err.Error()})
+		}
+		if errors.Is(err, errorx.ErrAlreadyCompleted) {
+			return c.JSON(http.StatusConflict, ConflictResponse{Error: err.Error()})
+		}
+		return c.JSON(http.StatusInternalServerError, ServerErrorResponse{Error: err.Error()})
 	}
 
 	response := CompleteUploadResponse{
@@ -66,5 +74,5 @@ func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
 		Status: string(job.JobStatusQueued),
 	}
 
-	return c.JSON(http.StatusOK, response)
+	return c.JSON(http.StatusAccepted, response)
 }

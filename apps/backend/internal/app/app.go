@@ -18,7 +18,6 @@ type App struct {
 func New() (*App, error) {
 	a := &App{}
 
-	// Загружаем конфигурацию
 	cfg, err := config.Load()
 	if err != nil {
 		return nil, err
