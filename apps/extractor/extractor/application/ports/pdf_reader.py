@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, List, Iterable
-from src.entities.page import PageRaster
+from extractor.domain.entities.page import PageRaster
 
 
 class AsyncDocumentHandle(ABC):

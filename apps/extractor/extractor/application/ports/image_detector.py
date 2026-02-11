@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
-from apps.extractor.extractor.domain.entities.page import PageRaster
-from apps.extractor.extractor.domain.entities.bounding_box import BoundingBox
+from extractor.domain.entities.page import PageRaster
+from extractor.domain.entities.bounding_box import BoundingBox
 
 class ImageDetector(ABC):
     """Детектор изображений на странице документа"""
