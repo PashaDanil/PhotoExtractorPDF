@@ -19,9 +19,8 @@ func NewJobStoreRepo(rdb *redis.Client) *JobStoreRepo {
 
 func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *job.Job) error {
 	err := r.rdb.HSet(ctx, jb.JobID, map[string]any{
-		"status":     jb.Status,
+		"status":     string(jb.Status),
 		"pdf_key":    jb.PDFKey,
-		"upload_url": jb.UploadURL,
 		"created_at": jb.CreatedAt,
 		"updated_at": jb.UpdatedAt,
 	})
@@ -47,7 +46,7 @@ func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, jb *job.Job) error {
 	}
 
 	cmd := r.rdb.HSet(ctx, jb.JobID, map[string]any{
-		"status":     jb.Status,
+		"status":     string(jb.Status),
 		"updated_at": jb.UpdatedAt,
 	})
 	if err := cmd.Err(); err != nil {

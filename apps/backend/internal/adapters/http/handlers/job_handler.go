@@ -30,14 +30,14 @@ func NewJobHandler(jobService *services.JobService) *JobHandler {
 // @Failure 500 {object} ServerErrorResponse
 // @Router /upload [post]
 func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
-	jb, err := h.jobService.InitUpload(c.Request().Context())
+	jb, uploadURL, err := h.jobService.InitUpload(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ServerErrorResponse{Error: err.Error()})
 	}
 
 	response := InitUploadResponse{
 		JobID:     jb.JobID,
-		UploadURL: jb.UploadURL,
+		UploadURL: uploadURL,
 	}
 
 	return c.JSON(http.StatusCreated, response)

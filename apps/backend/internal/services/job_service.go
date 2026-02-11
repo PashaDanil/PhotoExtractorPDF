@@ -21,30 +21,29 @@ func NewJobService(jobStore job.JobStore, objectStorage job.ObjectStorage) *JobS
 	}
 }
 
-func (s *JobService) InitUpload(ctx context.Context) (*job.Job, error) {
+func (s *JobService) InitUpload(ctx context.Context) (*job.Job, string, error) {
 	jobID := uuid.NewString()
 	pdfKey := fmt.Sprintf("pdf/%s.pdf", jobID)
 	now := time.Now()
 
 	uploadURL, err := s.objectStorage.GetPresignedURL(ctx, pdfKey, 5*time.Minute)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	jb := &job.Job{
 		JobID:     jobID,
 		Status:    job.JobStatusCreated,
 		PDFKey:    pdfKey,
-		UploadURL: uploadURL,
 		CreatedAt: now.Unix(),
 		UpdatedAt: now.Unix(),
 	}
 
 	if err = s.jobStore.CreateJob(ctx, jb); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return jb, nil
+	return jb, uploadURL, nil
 }
 
 func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
