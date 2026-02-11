@@ -7,5 +7,8 @@
  */
 
 export * from './internalAdaptersHttpHandlersCompleteUploadResponse';
+export * from './internalAdaptersHttpHandlersConflictResponse';
 export * from './internalAdaptersHttpHandlersErrorResponse';
 export * from './internalAdaptersHttpHandlersInitUploadResponse';
+export * from './internalAdaptersHttpHandlersNotFoundResponse';
+export * from './internalAdaptersHttpHandlersServerErrorResponse';

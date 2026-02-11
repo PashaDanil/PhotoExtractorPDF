@@ -24,7 +24,7 @@ func New(
 
 	e := echo.New()
 
-	e.Use(middleware.RequestLogger())
+	// e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

@@ -32,7 +32,10 @@ type MinIOConfig struct {
 }
 
 func Load() (*Config, error) {
-	_ = godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		return nil, fmt.Errorf("error loading .env file: %w", err)
+	}
 
 	cfg := &Config{
 		Server: ServerConfig{
@@ -40,13 +43,13 @@ func Load() (*Config, error) {
 		},
 		Redis: RedisConfig{
 			URL:      getEnv("REDIS_URL", "localhost:6379"),
-			Password: getEnv("REDIS_PASSWORD", ""),
+			Password: getEnv("REDIS_PASSWORD", "redis"),
 			DB:       getEnvAsInt("REDIS_DB", 0),
 		},
 		MinIO: MinIOConfig{
 			URL:      getEnv("MINIO_URL", "localhost:9000"),
-			User:     getEnv("MINIO_ROOT_USER", "minioadmin"),
-			Password: getEnv("MINIO_ROOT_PASSWORD", "minioadmin"),
+			User:     getEnv("MINIO_ROOT_USER", "minio"),
+			Password: getEnv("MINIO_ROOT_PASSWORD", "minio12345"),
 			UseSSL:   getEnvAsBool("MINIO_USE_SSL", false),
 		},
 	}

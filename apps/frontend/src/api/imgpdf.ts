@@ -10,31 +10,34 @@ import {
 } from '@tanstack/react-query';
 import type {
   MutationFunction,
+  QueryClient,
   UseMutationOptions,
   UseMutationResult
 } from '@tanstack/react-query';
 
 import type {
   InternalAdaptersHttpHandlersCompleteUploadResponse,
-  InternalAdaptersHttpHandlersErrorResponse,
-  InternalAdaptersHttpHandlersInitUploadResponse
+  InternalAdaptersHttpHandlersConflictResponse,
+  InternalAdaptersHttpHandlersInitUploadResponse,
+  InternalAdaptersHttpHandlersNotFoundResponse,
+  InternalAdaptersHttpHandlersServerErrorResponse
 } from './model';
 
 /**
  * Initialize a new PDF upload job and get presigned upload URL
  * @summary Initialize PDF upload
  */
-export type postUploadResponse200 = {
+export type postUploadResponse201 = {
   data: InternalAdaptersHttpHandlersInitUploadResponse
-  status: 200
+  status: 201
 }
 
 export type postUploadResponse500 = {
-  data: InternalAdaptersHttpHandlersErrorResponse
+  data: InternalAdaptersHttpHandlersServerErrorResponse
   status: 500
 }
     
-export type postUploadResponseSuccess = (postUploadResponse200) & {
+export type postUploadResponseSuccess = (postUploadResponse201) & {
   headers: Headers;
 };
 export type postUploadResponseError = (postUploadResponse500) & {
@@ -71,7 +74,7 @@ export const postUpload = async ( options?: RequestInit): Promise<postUploadResp
 
 
 
-export const getPostUploadMutationOptions = <TError = InternalAdaptersHttpHandlersErrorResponse,
+export const getPostUploadMutationOptions = <TError = InternalAdaptersHttpHandlersServerErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUpload>>, TError,void, TContext>, fetch?: RequestInit}
 ): UseMutationOptions<Awaited<ReturnType<typeof postUpload>>, TError,void, TContext> => {
 
@@ -100,40 +103,50 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type PostUploadMutationResult = NonNullable<Awaited<ReturnType<typeof postUpload>>>
     
-    export type PostUploadMutationError = InternalAdaptersHttpHandlersErrorResponse
+    export type PostUploadMutationError = InternalAdaptersHttpHandlersServerErrorResponse
 
     /**
  * @summary Initialize PDF upload
  */
-export const usePostUpload = <TError = InternalAdaptersHttpHandlersErrorResponse,
+export const usePostUpload = <TError = InternalAdaptersHttpHandlersServerErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUpload>>, TError,void, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postUpload>>,
         TError,
         void,
         TContext
       > => {
-      return useMutation(getPostUploadMutationOptions(options));
+      return useMutation(getPostUploadMutationOptions(options), queryClient);
     }
     
 /**
  * Mark the PDF upload as complete and queue for processing
  * @summary Complete PDF upload
  */
-export type postUploadJobIdCompleteResponse200 = {
+export type postUploadJobIdCompleteResponse202 = {
   data: InternalAdaptersHttpHandlersCompleteUploadResponse
-  status: 200
+  status: 202
+}
+
+export type postUploadJobIdCompleteResponse404 = {
+  data: InternalAdaptersHttpHandlersNotFoundResponse
+  status: 404
+}
+
+export type postUploadJobIdCompleteResponse409 = {
+  data: InternalAdaptersHttpHandlersConflictResponse
+  status: 409
 }
 
 export type postUploadJobIdCompleteResponse500 = {
-  data: InternalAdaptersHttpHandlersErrorResponse
+  data: InternalAdaptersHttpHandlersServerErrorResponse
   status: 500
 }
     
-export type postUploadJobIdCompleteResponseSuccess = (postUploadJobIdCompleteResponse200) & {
+export type postUploadJobIdCompleteResponseSuccess = (postUploadJobIdCompleteResponse202) & {
   headers: Headers;
 };
-export type postUploadJobIdCompleteResponseError = (postUploadJobIdCompleteResponse500) & {
+export type postUploadJobIdCompleteResponseError = (postUploadJobIdCompleteResponse404 | postUploadJobIdCompleteResponse409 | postUploadJobIdCompleteResponse500) & {
   headers: Headers;
 };
 
@@ -167,7 +180,7 @@ export const postUploadJobIdComplete = async (jobId: string, options?: RequestIn
 
 
 
-export const getPostUploadJobIdCompleteMutationOptions = <TError = InternalAdaptersHttpHandlersErrorResponse,
+export const getPostUploadJobIdCompleteMutationOptions = <TError = InternalAdaptersHttpHandlersNotFoundResponse | InternalAdaptersHttpHandlersConflictResponse | InternalAdaptersHttpHandlersServerErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUploadJobIdComplete>>, TError,{jobId: string}, TContext>, fetch?: RequestInit}
 ): UseMutationOptions<Awaited<ReturnType<typeof postUploadJobIdComplete>>, TError,{jobId: string}, TContext> => {
 
@@ -196,18 +209,18 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type PostUploadJobIdCompleteMutationResult = NonNullable<Awaited<ReturnType<typeof postUploadJobIdComplete>>>
     
-    export type PostUploadJobIdCompleteMutationError = InternalAdaptersHttpHandlersErrorResponse
+    export type PostUploadJobIdCompleteMutationError = InternalAdaptersHttpHandlersNotFoundResponse | InternalAdaptersHttpHandlersConflictResponse | InternalAdaptersHttpHandlersServerErrorResponse
 
     /**
  * @summary Complete PDF upload
  */
-export const usePostUploadJobIdComplete = <TError = InternalAdaptersHttpHandlersErrorResponse,
+export const usePostUploadJobIdComplete = <TError = InternalAdaptersHttpHandlersNotFoundResponse | InternalAdaptersHttpHandlersConflictResponse | InternalAdaptersHttpHandlersServerErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUploadJobIdComplete>>, TError,{jobId: string}, TContext>, fetch?: RequestInit}
- ): UseMutationResult<
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postUploadJobIdComplete>>,
         TError,
         {jobId: string},
         TContext
       > => {
-      return useMutation(getPostUploadJobIdCompleteMutationOptions(options));
+      return useMutation(getPostUploadJobIdCompleteMutationOptions(options), queryClient);
     }
