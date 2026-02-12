@@ -13,15 +13,14 @@ type JobStoreRepo struct {
 	rdb *redis.Client
 }
 
-func NewJobStoreRepo(rdb *redis.Client) *JobStoreRepo {
-	return &JobStoreRepo{rdb: rdb}
+func NewJobStoreRepo(r *Redis) *JobStoreRepo {
+	return &JobStoreRepo{rdb: r.Client()}
 }
 
 func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *job.Job) error {
 	err := r.rdb.HSet(ctx, jb.JobID, map[string]any{
-		"status":     jb.Status,
+		"status":     string(jb.Status),
 		"pdf_key":    jb.PDFKey,
-		"upload_url": jb.UploadURL,
 		"created_at": jb.CreatedAt,
 		"updated_at": jb.UpdatedAt,
 	})
@@ -33,21 +32,8 @@ func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *job.Job) error {
 }
 
 func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, jb *job.Job) error {
-	currentStatus, err := r.rdb.HGet(ctx, jb.JobID, "status").Result()
-	if err != nil {
-		// если пусто по ключу ErrNotFound 404
-		if err == redis.Nil {
-			return fmt.Errorf("job %s not found: %w", jb.JobID, errorx.ErrNotFound)
-		}
-		return err
-	}
-	// если уже queued ErrAlreadyCompleted 409
-	if currentStatus == string(job.JobStatusQueued) {
-		return fmt.Errorf("job %s already queued: %w", jb.JobID, errorx.ErrAlreadyCompleted)
-	}
-
 	cmd := r.rdb.HSet(ctx, jb.JobID, map[string]any{
-		"status":     jb.Status,
+		"status":     string(jb.Status),
 		"updated_at": jb.UpdatedAt,
 	})
 	if err := cmd.Err(); err != nil {
@@ -55,4 +41,26 @@ func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, jb *job.Job) error {
 	}
 
 	return nil
+}
+
+func (r *JobStoreRepo) CheckJobStatusQueued(ctx context.Context, jobID string) error {
+	currentStatus, err := r.rdb.HGet(ctx, jobID, "status").Result()
+	if err != nil {
+		if err == redis.Nil {
+			return fmt.Errorf("job %s not found: %w", jobID, errorx.ErrNotFound)
+		}
+		return err
+	}
+	if currentStatus == string(job.JobStatusQueued) {
+		return fmt.Errorf("job %s already queued: %w", jobID, errorx.ErrAlreadyCompleted)
+	}
+	return nil
+}
+
+func (r *JobStoreRepo) GetPdfKey(ctx context.Context, jobID string) (string, error) {
+	pdfKey := r.rdb.HGet(ctx, jobID, "pdf_key").Val()
+	if pdfKey == "" {
+		return "", fmt.Errorf("job %s not found: %w", jobID, errorx.ErrNotFound)
+	}
+	return pdfKey, nil
 }

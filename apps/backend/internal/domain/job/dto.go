@@ -1,4 +1,4 @@
-package handlers
+package job
 
 // InitUploadResponse represents the response when initializing a PDF upload
 // @name InitUploadResponse

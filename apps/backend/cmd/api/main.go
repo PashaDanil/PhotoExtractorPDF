@@ -4,6 +4,9 @@ import (
 	_ "api/docs"
 	"api/internal/app"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 // @title PDF to Images API
@@ -25,6 +28,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-quit
+		log.Println("Shutting down gracefully...")
+		a.Shutdown()
+		os.Exit(0)
+	}()
 
 	a.Run()
 }
