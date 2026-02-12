@@ -26,6 +26,10 @@ func New(
 
 	// e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:5173"},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.PATCH},
+	}))
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
@@ -39,4 +43,8 @@ func New(
 
 func (s *Server) Run() {
 	s.e.Start(":" + s.cfg.Server.Port)
+}
+
+func (s *Server) Shutdown() error {
+	return s.e.Close()
 }

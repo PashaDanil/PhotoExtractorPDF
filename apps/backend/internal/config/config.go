@@ -9,9 +9,10 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig
-	Redis  RedisConfig
-	MinIO  MinIOConfig
+	Server   ServerConfig
+	Redis    RedisConfig
+	MinIO    MinIOConfig
+	RabbitMQ RabbitMQConfig
 }
 
 type ServerConfig struct {
@@ -29,6 +30,12 @@ type MinIOConfig struct {
 	User     string
 	Password string
 	UseSSL   bool
+}
+
+type RabbitMQConfig struct {
+	URL      string
+	User     string
+	Password string
 }
 
 func Load() (*Config, error) {
@@ -52,6 +59,11 @@ func Load() (*Config, error) {
 			Password: getEnv("MINIO_ROOT_PASSWORD", "minio12345"),
 			UseSSL:   getEnvAsBool("MINIO_USE_SSL", false),
 		},
+		RabbitMQ: RabbitMQConfig{
+			URL:      getEnv("RABBITMQ_URL", "localhost:5672"),
+			User:     getEnv("RABBITMQ_USER", "rabbit"),
+			Password: getEnv("RABBITMQ_PASSWORD", "rabbit123"),
+		},
 	}
 
 	if err := cfg.validate(); err != nil {
@@ -73,6 +85,15 @@ func (c *Config) validate() error {
 	}
 	if c.MinIO.Password == "" {
 		return fmt.Errorf("MINIO_ROOT_PASSWORD is required")
+	}
+	if c.RabbitMQ.URL == "" {
+		return fmt.Errorf("RABBITMQ_URL is required")
+	}
+	if c.RabbitMQ.User == "" {
+		return fmt.Errorf("RABBITMQ_USER is required")
+	}
+	if c.RabbitMQ.Password == "" {
+		return fmt.Errorf("RABBITMQ_PASSWORD is required")
 	}
 	return nil
 }
