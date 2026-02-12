@@ -5,6 +5,7 @@ import (
 	"api/internal/adapters/http"
 	"api/internal/adapters/http/handlers"
 	"api/internal/adapters/minio"
+	"api/internal/adapters/rabbitmq"
 	"api/internal/adapters/redis"
 	"api/internal/config"
 	"api/internal/services"
@@ -13,6 +14,8 @@ import (
 type App struct {
 	s   *http.Server
 	cfg *config.Config
+	rdb *redis.Redis
+	rmq *rabbitmq.RabbitMQ
 }
 
 func New() (*App, error) {
@@ -34,22 +37,48 @@ func New() (*App, error) {
 		return nil, err
 	}
 
-	jobStore := redis.NewJobStoreRepo(rdb)
-	objectStorage := minio.NewObjectStorageRepo(mio)
-
-	jobService := services.NewJobService(jobStore, objectStorage)
-	jobHandler := handlers.NewJobHandler(jobService)
-
-	server, err := http.New(cfg, jobHandler)
+	rmq, err := rabbitmq.New(cfg)
 	if err != nil {
 		return nil, err
 	}
 
+	if err := rabbitmq.Setup(rmq); err != nil {
+		rmq.Close()
+		return nil, err
+	}
+
+	jobStore := redis.NewJobStoreRepo(rdb)
+	objectStorage := minio.NewObjectStorageRepo(mio)
+	publisher := rabbitmq.NewPublisher(rmq.Channel())
+
+	jobService := services.NewJobService(jobStore, objectStorage, publisher)
+	jobHandler := handlers.NewJobHandler(jobService)
+
+	server, err := http.New(cfg, jobHandler)
+	if err != nil {
+		rmq.Close()
+		return nil, err
+	}
+
 	a.s = server
+	a.rdb = rdb
+	a.rmq = rmq
 
 	return a, nil
 }
 
 func (a *App) Run() {
 	a.s.Run()
+}
+
+func (a *App) Shutdown() {
+	if a.s != nil {
+		a.s.Shutdown()
+	}
+	if a.rmq != nil {
+		a.rmq.Close()
+	}
+	if a.rdb != nil {
+		a.rdb.Close()
+	}
 }

@@ -13,8 +13,8 @@ type JobStoreRepo struct {
 	rdb *redis.Client
 }
 
-func NewJobStoreRepo(rdb *redis.Client) *JobStoreRepo {
-	return &JobStoreRepo{rdb: rdb}
+func NewJobStoreRepo(r *Redis) *JobStoreRepo {
+	return &JobStoreRepo{rdb: r.Client()}
 }
 
 func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *job.Job) error {

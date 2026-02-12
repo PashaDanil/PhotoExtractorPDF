@@ -12,12 +12,14 @@ import (
 type JobService struct {
 	jobStore      job.JobStore
 	objectStorage job.ObjectStorage
+	publisher     job.QueuePublisher
 }
 
-func NewJobService(jobStore job.JobStore, objectStorage job.ObjectStorage) *JobService {
+func NewJobService(jobStore job.JobStore, objectStorage job.ObjectStorage, publisher job.QueuePublisher) *JobService {
 	return &JobService{
 		jobStore:      jobStore,
 		objectStorage: objectStorage,
+		publisher:     publisher,
 	}
 }
 
@@ -47,17 +49,26 @@ func (s *JobService) InitUpload(ctx context.Context) (*job.Job, string, error) {
 }
 
 func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
+	// проверяем статус
 	err := s.jobStore.CheckJobStatusQueued(ctx, jobID)
 	if err != nil {
 		return err
 	}
 
+	// получаем pdfKey
 	pdfKey, err := s.jobStore.GetPdfKey(ctx, jobID)
 	if err != nil {
 		return err
 	}
 
+	// проверяем, что объект существует в s3 хранилище
 	err = s.objectStorage.CheckObjectExists(ctx, pdfKey)
+	if err != nil {
+		return err
+	}
+
+	// публикуем задачу в очередь
+	err = s.publisher.PublishJob(ctx, jobID, pdfKey)
 	if err != nil {
 		return err
 	}

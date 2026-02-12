@@ -44,3 +44,7 @@ func New(
 func (s *Server) Run() {
 	s.e.Start(":" + s.cfg.Server.Port)
 }
+
+func (s *Server) Shutdown() error {
+	return s.e.Close()
+}

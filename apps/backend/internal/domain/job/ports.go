@@ -16,3 +16,8 @@ type JobStore interface {
 	CheckJobStatusQueued(ctx context.Context, jobID string) error
 	GetPdfKey(ctx context.Context, jobID string) (string, error)
 }
+
+type QueuePublisher interface {
+	PublishJob(ctx context.Context, jobID string, pdfKey string) error
+	Close() error
+}

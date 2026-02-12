@@ -12,8 +12,8 @@ type ObjectStorageRepo struct {
 	client *minio.Client
 }
 
-func NewObjectStorageRepo(client *minio.Client) *ObjectStorageRepo {
-	return &ObjectStorageRepo{client: client}
+func NewObjectStorageRepo(mio *minio.Client) *ObjectStorageRepo {
+	return &ObjectStorageRepo{client: mio}
 }
 
 func (m *ObjectStorageRepo) GetPresignedURL(ctx context.Context, pdfKey string, expires time.Duration) (string, error) {
