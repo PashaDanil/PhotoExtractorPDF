@@ -5,8 +5,8 @@ export default defineConfig({
     input: '../../libs/contracts/openapi/imgpdf.yaml',
     output: {
         client: 'react-query',
-        target: './src/api/imgpdf.ts',
-        schemas: './src/api/model',
+        target: './src/shared/api/generated/imgpdf.ts',
+        schemas: './src/shared/api/generated/model',
     },
   },
 });
