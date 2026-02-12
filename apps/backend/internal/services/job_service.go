@@ -47,6 +47,21 @@ func (s *JobService) InitUpload(ctx context.Context) (*job.Job, string, error) {
 }
 
 func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
+	err := s.jobStore.CheckJobStatusQueued(ctx, jobID)
+	if err != nil {
+		return err
+	}
+
+	pdfKey, err := s.jobStore.GetPdfKey(ctx, jobID)
+	if err != nil {
+		return err
+	}
+
+	err = s.objectStorage.CheckObjectExists(ctx, pdfKey)
+	if err != nil {
+		return err
+	}
+
 	now := time.Now()
 
 	jb := &job.Job{
@@ -55,7 +70,7 @@ func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
 		UpdatedAt: now.Unix(),
 	}
 
-	err := s.jobStore.MarkQueuedJob(ctx, jb)
+	err = s.jobStore.MarkQueuedJob(ctx, jb)
 	if err != nil {
 		return err
 	}

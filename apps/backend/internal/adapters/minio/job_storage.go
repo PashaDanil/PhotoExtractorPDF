@@ -1,6 +1,7 @@
 package minio
 
 import (
+	"api/pkg/errorx"
 	"context"
 	"time"
 
@@ -21,4 +22,21 @@ func (m *ObjectStorageRepo) GetPresignedURL(ctx context.Context, pdfKey string, 
 		return "", err
 	}
 	return presignedURL.String(), nil
+}
+
+func (m *ObjectStorageRepo) CheckObjectExists(ctx context.Context, pdfKey string) error {
+	info, err := m.client.StatObject(ctx, "imgpdf", pdfKey, minio.StatObjectOptions{})
+	if err != nil {
+		errResponse := minio.ToErrorResponse(err)
+		if errResponse.Code == "NoSuchKey" {
+			return errorx.ErrObjectNotFound
+		}
+		return err
+	}
+
+	if info.Size <= 0 {
+		return errorx.ErrObjectNotFound
+	}
+
+	return nil
 }
