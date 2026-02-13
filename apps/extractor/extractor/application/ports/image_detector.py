@@ -7,7 +7,7 @@ class ImageDetector(ABC):
     """Детектор изображений на странице документа"""
 
     @abstractmethod
-    def detect(self, page: PageRaster) -> List[BoundingBox] | None:
+    async def detect(self, page: PageRaster) -> List[BoundingBox] | None:
         """
         Находит изображения на одной странице.
 
@@ -20,7 +20,7 @@ class ImageDetector(ABC):
         ...
 
     @abstractmethod
-    def detect_batch(self, pages: List[PageRaster]) -> List[List[BoundingBox]] | None:
+    async def detect_batch(self, pages: List[PageRaster]) -> List[List[BoundingBox]] | None:
         """
         Находит изображения на батче страниц.
 
@@ -33,7 +33,7 @@ class ImageDetector(ABC):
         """
         ...
 
-    def warmup(self) -> None:
+    async def warmup(self) -> None:
         """
         Прогрев модели (первый inference).
         """
