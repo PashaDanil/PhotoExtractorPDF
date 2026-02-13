@@ -67,12 +67,6 @@ func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
 		return err
 	}
 
-	// публикуем задачу в очередь
-	err = s.publisher.PublishJob(ctx, jobID, pdfKey)
-	if err != nil {
-		return err
-	}
-
 	now := time.Now()
 
 	jb := &job.Job{
@@ -82,6 +76,12 @@ func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
 	}
 
 	err = s.jobStore.MarkQueuedJob(ctx, jb)
+	if err != nil {
+		return err
+	}
+
+	// публикуем задачу в очередь
+	err = s.publisher.PublishJob(ctx, jobID, pdfKey)
 	if err != nil {
 		return err
 	}
