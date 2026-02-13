@@ -11,7 +11,7 @@ import asyncio
 class YoloDetector(ImageDetector):
     def __init__(
             self,
-            model_path="apps/extractor/yolov11m-doclaynet.pt",
+            model_path="yolov11m-doclaynet.pt",
             imgsz : int = 960,
             classes : List[int] = [6],
             device : str = "cuda:0"
@@ -40,7 +40,8 @@ class YoloDetector(ImageDetector):
                 x1=box[0],
                 y1=box[1],
                 x2=box[2],
-                y2=box[3]
+                y2=box[3],
+                confidence=box[4]
             )
             for box in prediction_boxes_data
         ]
@@ -67,7 +68,8 @@ class YoloDetector(ImageDetector):
                     x1=box[0],
                     y1=box[1],
                     x2=box[2],
-                    y2=box[3]
+                    y2=box[3],
+                    confidence=box[4]
                 )
                 for box in prediction_boxes_data
             ]

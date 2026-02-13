@@ -8,7 +8,8 @@ class BoundingBox:
     Ограничивающая рамка изображения.
 
     Использует координатную систему (x1, y1, x2, y2),
-    где (x1, y1) — левый верхний угол, (x2, y2) — правый нижний.
+    где (x1, y1) — левый верхний угол, (x2, y2) — правый нижний,
+    confidence — показатель уверенности модели.
 
     Координаты нормализованы к размеру страницы [0.0, 1.0].
     """
@@ -16,6 +17,7 @@ class BoundingBox:
     y1: float
     x2: float
     y2: float
+    confidence: float
 
     def __post_init__(self) -> None:
         """Валидация координат."""
@@ -48,17 +50,18 @@ class BoundingBox:
         return (self.x1, self.y1, self.x2, self.y2)
 
     @classmethod
-    def from_xywh(cls, x: float, y: float, width: float, height: float) -> Self:
+    def from_xywh(cls, x: float, y: float, width: float, height: float, confidence: float) -> Self:
         """Создать из формата (x, y, width, height)."""
         return cls(
             x1=x,
             y1=y,
             x2=x + width,
-            y2=y + height
+            y2=y + height,
+            confidence=confidence
         )
 
     @classmethod
-    def from_center(cls, cx: float, cy: float, width: float, height: float) -> Self:
+    def from_center(cls, cx: float, cy: float, width: float, height: float, confidence: float) -> Self:
         """Создать из центра и размеров."""
         half_w = width / 2
         half_h = height / 2
@@ -66,7 +69,8 @@ class BoundingBox:
             x1=cx - half_w,
             y1=cy - half_h,
             x2=cx + half_w,
-            y2=cy + half_h
+            y2=cy + half_h,
+            confidence=confidence
         )
 
     def scale(self, factor: float) -> Self:
@@ -74,7 +78,7 @@ class BoundingBox:
         cx, cy = self.center
         new_w = self.width * factor
         new_h = self.height * factor
-        return self.from_center(cx, cy, new_w, new_h)
+        return self.from_center(cx, cy, new_w, new_h, self.confidence)
 
     def pad(self, padding: float) -> Self:
         """Добавить отступ со всех сторон."""
@@ -82,7 +86,8 @@ class BoundingBox:
             x1=max(0.0, self.x1 - padding),
             y1=max(0.0, self.y1 - padding),
             x2=min(1.0, self.x2 + padding),
-            y2=min(1.0, self.y2 + padding)
+            y2=min(1.0, self.y2 + padding),
+            confidence=self.confidence
         )
 
     def padx(self, padding_left: float = 0, padding_right: float = 0) -> Self:
@@ -91,7 +96,8 @@ class BoundingBox:
             x1=max(0.0, self.x1 - padding_left),
             y1=self.y1,
             x2=min(1.0, self.x2 + padding_right),
-            y2=self.y2
+            y2=self.y2,
+            confidence=self.confidence
         )
 
     def pady(self, padding_top: float = 0, padding_bottom: float = 0) -> Self:
@@ -100,7 +106,8 @@ class BoundingBox:
             x1=self.x1,
             y1=max(0.0, self.y1 - padding_top),
             x2=self.x2,
-            y2=min(1.0, self.y2 + padding_bottom)
+            y2=min(1.0, self.y2 + padding_bottom),
+            confidence=self.confidence
         )
 
     def to_absolute(self, page_width: int, page_height: int) -> tuple[float, float, float, float]:
