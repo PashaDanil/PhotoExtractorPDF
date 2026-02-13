@@ -58,9 +58,12 @@ func (r *JobStoreRepo) CheckJobStatusQueued(ctx context.Context, jobID string) e
 }
 
 func (r *JobStoreRepo) GetPdfKey(ctx context.Context, jobID string) (string, error) {
-	pdfKey := r.rdb.HGet(ctx, jobID, "pdf_key").Val()
-	if pdfKey == "" {
-		return "", fmt.Errorf("job %s not found: %w", jobID, errorx.ErrNotFound)
+	pdfKey, err := r.rdb.HGet(ctx, jobID, "pdf_key").Result()
+	if err != nil {
+		if err == redis.Nil {
+			return "", fmt.Errorf("job %s not found: %w", jobID, errorx.ErrNotFound)
+		}
+		return "", err
 	}
 	return pdfKey, nil
 }
