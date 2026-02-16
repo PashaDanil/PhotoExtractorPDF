@@ -82,6 +82,23 @@ class PyMuPDFHandle(AsyncDocumentHandle):
             batch_results = list(await asyncio.gather(*tasks))
             yield batch_results
 
+    async def get_page(
+            self,
+            page_number: int,
+            dpi: int = 72,
+    ) -> bytes:
+        """
+        Async метод для получения страницы.
+        Возвращает bytes страницы.
+        """
+        new_doc = fitz.open()
+        new_doc.insert_pdf(self._doc, from_page=page_number, to_page=0)  # вставляем только страницу 0
+
+        # Получаем bytes
+        pdf_bytes = new_doc.tobytes()
+        new_doc.close()
+        return pdf_bytes
+
 
 
 class PyMuPDFReader(PDFReader):

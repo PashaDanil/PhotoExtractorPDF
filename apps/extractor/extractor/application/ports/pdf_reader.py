@@ -35,6 +35,18 @@ class AsyncDocumentHandle(ABC):
         """
         ...
 
+    @abstractmethod
+    async def get_page(
+            self,
+            page_number: int,
+            dpi: int = 72,
+    ) -> bytes:
+        """
+        Async метод для получения страницы.
+        Возвращает bytes страницы.
+        """
+        ...
+
 
 class PDFReader(ABC):
 
