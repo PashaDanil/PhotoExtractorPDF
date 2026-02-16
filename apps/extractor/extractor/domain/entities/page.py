@@ -14,7 +14,6 @@ class Page:
     page_number: int
     width: float
     height: float
-    image: npt.NDArray[np.uint8]
     images: List[Image] | None
     render_dpi: int = 72
 
