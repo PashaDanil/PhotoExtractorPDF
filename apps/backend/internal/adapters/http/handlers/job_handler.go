@@ -2,19 +2,24 @@ package handlers
 
 import (
 	"api/internal/domain/job"
-	"api/internal/services"
 	"api/pkg/errorx"
+	"context"
 	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
 
-type JobHandler struct {
-	jobService *services.JobService
+type JobService interface {
+	InitUpload(ctx context.Context) (*job.Job, string, error)
+	CompleteUpload(ctx context.Context, jobID string) error
 }
 
-func NewJobHandler(jobService *services.JobService) *JobHandler {
+type JobHandler struct {
+	jobService JobService
+}
+
+func NewJobHandler(jobService JobService) *JobHandler {
 	return &JobHandler{
 		jobService: jobService,
 	}

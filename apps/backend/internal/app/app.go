@@ -7,8 +7,8 @@ import (
 	"api/internal/adapters/minio"
 	"api/internal/adapters/rabbitmq"
 	"api/internal/adapters/redis"
-	"api/internal/config"
 	"api/internal/services"
+	"api/pkg/config"
 )
 
 type App struct {
@@ -21,7 +21,7 @@ type App struct {
 func New() (*App, error) {
 	a := &App{}
 
-	cfg, err := config.Load()
+	cfg, err := config.New("config.yaml")
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func New() (*App, error) {
 	jobService := services.NewJobService(jobStore, objectStorage, publisher)
 	jobHandler := handlers.NewJobHandler(jobService)
 
-	server, err := http.New(cfg, jobHandler)
+	server, err := http.New(jobHandler)
 	if err != nil {
 		rmq.Close()
 		return nil, err
@@ -68,7 +68,7 @@ func New() (*App, error) {
 }
 
 func (a *App) Run() {
-	a.s.Run()
+	a.s.Run(":" + a.cfg.ServerConfig.Port)
 }
 
 func (a *App) Shutdown() {
