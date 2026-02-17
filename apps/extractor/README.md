@@ -3,6 +3,8 @@
 
 ```bash
 cd apps/extractor
+python -m venv venv
+venv\Scripts\activate
 pip install requirements.txt
 pip install -e .
 ```
