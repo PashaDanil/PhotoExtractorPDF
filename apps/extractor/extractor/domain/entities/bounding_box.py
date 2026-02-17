@@ -73,11 +73,11 @@ class BoundingBox:
             confidence=confidence
         )
 
-    def scale(self, factor: float) -> Self:
+    def scale_x_y(self, factor_x: float, factor_y: float) -> Self:
         """Масштабировать от центра."""
         cx, cy = self.center
-        new_w = self.width * factor
-        new_h = self.height * factor
+        new_w = self.width * factor_x
+        new_h = self.height * factor_y
         return self.from_center(cx, cy, new_w, new_h, self.confidence)
 
     def pad(self, padding: float) -> Self:
@@ -87,6 +87,20 @@ class BoundingBox:
             y1=max(0.0, self.y1 - padding),
             x2=min(1.0, self.x2 + padding),
             y2=min(1.0, self.y2 + padding),
+            confidence=self.confidence
+        )
+
+    def pad_relative(self, factor: float) -> Self:
+        """
+        Добавить отступ пропорционально размеру bbox.
+        """
+        pad_x = self.width * factor
+        pad_y = self.height * factor
+        return self.__class__(
+            x1=max(0.0, self.x1 - pad_x),
+            y1=max(0.0, self.y1 - pad_y),
+            x2=min(1.0, self.x2 + pad_x),
+            y2=min(1.0, self.y2 + pad_y),
             confidence=self.confidence
         )
 
@@ -110,10 +124,10 @@ class BoundingBox:
             confidence=self.confidence
         )
 
-    def to_absolute(self, page_width: int, page_height: int) -> tuple[float, float, float, float]:
+    def to_absolute(self, page_width: float, page_height: float) -> tuple[float, float, float, float]:
         """
-        Конвертировать нормализованные [0,1] в абсолютные пиксели.
-        Возвращает координаты в формате (x1, y1, x2, y2).
+        Конвертировать нормализованные [0,1] координаты в абсолютные.
+        Каждая координата умножается на соответствующий размер страницы.
         """
         return (
             self.x1 * page_width,
