@@ -30,16 +30,6 @@ type Config struct {
 		User     string `yaml:"user"`
 		Password string `yaml:"password"`
 	} `yaml:"rabbitmq"`
-
-	PostgresConfig struct {
-		Host     string `yaml:"host"`
-		User     string `yaml:"user"`
-		Password string `yaml:"password"`
-		DBName   string `yaml:"dbname"`
-		Port     string `yaml:"port"`
-		SSLMode  string `yaml:"sslmode"`
-		TimeZone string `yaml:"timezone"`
-	} `yaml:"postgres"`
 }
 
 func New(config string) (*Config, error) {
