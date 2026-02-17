@@ -87,6 +87,7 @@ venv/
 ENV/
 env/
 .env/
+config.yaml
 
 # Distribution / packaging
 *.egg
@@ -206,3 +207,5 @@ $RECYCLE.BIN/
 .history/
 .ionide/
 tmp/
+
+/*-info/

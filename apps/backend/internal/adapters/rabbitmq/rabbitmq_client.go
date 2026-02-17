@@ -1,7 +1,7 @@
 package rabbitmq
 
 import (
-	"api/internal/config"
+	"api/pkg/config"
 	"fmt"
 	"log"
 
@@ -15,9 +15,9 @@ type RabbitMQ struct {
 
 func New(cfg *config.Config) (*RabbitMQ, error) {
 	url := fmt.Sprintf("amqp://%s:%s@%s/",
-		cfg.RabbitMQ.User,
-		cfg.RabbitMQ.Password,
-		cfg.RabbitMQ.URL,
+		cfg.RabbitMQConfig.User,
+		cfg.RabbitMQConfig.Password,
+		cfg.RabbitMQConfig.URL,
 	)
 
 	conn, err := amqp.Dial(url)
