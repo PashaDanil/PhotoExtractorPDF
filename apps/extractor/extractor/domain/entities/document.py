@@ -11,5 +11,5 @@ class Document:
     pages: List[Page] | None
 
     page_count: int
-    title: int
+    title: str
 
