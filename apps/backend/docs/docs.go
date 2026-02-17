@@ -40,13 +40,13 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_http_handlers.InitUploadResponse"
+                            "$ref": "#/definitions/api_internal_domain_job.InitUploadResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_http_handlers.ServerErrorResponse"
+                            "$ref": "#/definitions/api_internal_domain_job.ServerErrorResponse"
                         }
                     }
                 }
@@ -78,25 +78,31 @@ const docTemplate = `{
                     "202": {
                         "description": "Accepted",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_http_handlers.CompleteUploadResponse"
+                            "$ref": "#/definitions/api_internal_domain_job.CompleteUploadResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_http_handlers.NotFoundResponse"
+                            "$ref": "#/definitions/api_internal_domain_job.NotFoundResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_http_handlers.ConflictResponse"
+                            "$ref": "#/definitions/api_internal_domain_job.ConflictResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/api_internal_domain_job.UnprocessableEntityResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_http_handlers.ServerErrorResponse"
+                            "$ref": "#/definitions/api_internal_domain_job.ServerErrorResponse"
                         }
                     }
                 }
@@ -104,7 +110,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "internal_adapters_http_handlers.CompleteUploadResponse": {
+        "api_internal_domain_job.CompleteUploadResponse": {
             "type": "object",
             "properties": {
                 "job_id": {
@@ -117,7 +123,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_adapters_http_handlers.ConflictResponse": {
+        "api_internal_domain_job.ConflictResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -126,7 +132,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_adapters_http_handlers.InitUploadResponse": {
+        "api_internal_domain_job.InitUploadResponse": {
             "type": "object",
             "properties": {
                 "job_id": {
@@ -139,7 +145,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_adapters_http_handlers.NotFoundResponse": {
+        "api_internal_domain_job.NotFoundResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -148,12 +154,21 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_adapters_http_handlers.ServerErrorResponse": {
+        "api_internal_domain_job.ServerErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
                     "type": "string",
                     "example": "internal server error"
+                }
+            }
+        },
+        "api_internal_domain_job.UnprocessableEntityResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "object not found in storage"
                 }
             }
         }

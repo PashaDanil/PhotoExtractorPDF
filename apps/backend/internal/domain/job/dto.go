@@ -31,3 +31,9 @@ type NotFoundResponse struct {
 type ConflictResponse struct {
 	Error string `json:"error" example:"job already completed"`
 }
+
+// UnprocessableEntityResponse represents a 422 error response
+// @name UnprocessableEntityResponse
+type UnprocessableEntityResponse struct {
+	Error string `json:"error" example:"object not found in storage"`
+}

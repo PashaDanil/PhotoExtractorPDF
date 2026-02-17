@@ -16,11 +16,12 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  InternalAdaptersHttpHandlersCompleteUploadResponse,
-  InternalAdaptersHttpHandlersConflictResponse,
-  InternalAdaptersHttpHandlersInitUploadResponse,
-  InternalAdaptersHttpHandlersNotFoundResponse,
-  InternalAdaptersHttpHandlersServerErrorResponse
+  ApiInternalDomainJobCompleteUploadResponse,
+  ApiInternalDomainJobConflictResponse,
+  ApiInternalDomainJobInitUploadResponse,
+  ApiInternalDomainJobNotFoundResponse,
+  ApiInternalDomainJobServerErrorResponse,
+  ApiInternalDomainJobUnprocessableEntityResponse
 } from './model';
 
 /**
@@ -28,12 +29,12 @@ import type {
  * @summary Initialize PDF upload
  */
 export type postUploadResponse201 = {
-  data: InternalAdaptersHttpHandlersInitUploadResponse
+  data: ApiInternalDomainJobInitUploadResponse
   status: 201
 }
 
 export type postUploadResponse500 = {
-  data: InternalAdaptersHttpHandlersServerErrorResponse
+  data: ApiInternalDomainJobServerErrorResponse
   status: 500
 }
     
@@ -74,7 +75,7 @@ export const postUpload = async ( options?: RequestInit): Promise<postUploadResp
 
 
 
-export const getPostUploadMutationOptions = <TError = InternalAdaptersHttpHandlersServerErrorResponse,
+export const getPostUploadMutationOptions = <TError = ApiInternalDomainJobServerErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUpload>>, TError,void, TContext>, fetch?: RequestInit}
 ): UseMutationOptions<Awaited<ReturnType<typeof postUpload>>, TError,void, TContext> => {
 
@@ -103,12 +104,12 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type PostUploadMutationResult = NonNullable<Awaited<ReturnType<typeof postUpload>>>
     
-    export type PostUploadMutationError = InternalAdaptersHttpHandlersServerErrorResponse
+    export type PostUploadMutationError = ApiInternalDomainJobServerErrorResponse
 
     /**
  * @summary Initialize PDF upload
  */
-export const usePostUpload = <TError = InternalAdaptersHttpHandlersServerErrorResponse,
+export const usePostUpload = <TError = ApiInternalDomainJobServerErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUpload>>, TError,void, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postUpload>>,
@@ -124,29 +125,34 @@ export const usePostUpload = <TError = InternalAdaptersHttpHandlersServerErrorRe
  * @summary Complete PDF upload
  */
 export type postUploadJobIdCompleteResponse202 = {
-  data: InternalAdaptersHttpHandlersCompleteUploadResponse
+  data: ApiInternalDomainJobCompleteUploadResponse
   status: 202
 }
 
 export type postUploadJobIdCompleteResponse404 = {
-  data: InternalAdaptersHttpHandlersNotFoundResponse
+  data: ApiInternalDomainJobNotFoundResponse
   status: 404
 }
 
 export type postUploadJobIdCompleteResponse409 = {
-  data: InternalAdaptersHttpHandlersConflictResponse
+  data: ApiInternalDomainJobConflictResponse
   status: 409
 }
 
+export type postUploadJobIdCompleteResponse422 = {
+  data: ApiInternalDomainJobUnprocessableEntityResponse
+  status: 422
+}
+
 export type postUploadJobIdCompleteResponse500 = {
-  data: InternalAdaptersHttpHandlersServerErrorResponse
+  data: ApiInternalDomainJobServerErrorResponse
   status: 500
 }
     
 export type postUploadJobIdCompleteResponseSuccess = (postUploadJobIdCompleteResponse202) & {
   headers: Headers;
 };
-export type postUploadJobIdCompleteResponseError = (postUploadJobIdCompleteResponse404 | postUploadJobIdCompleteResponse409 | postUploadJobIdCompleteResponse500) & {
+export type postUploadJobIdCompleteResponseError = (postUploadJobIdCompleteResponse404 | postUploadJobIdCompleteResponse409 | postUploadJobIdCompleteResponse422 | postUploadJobIdCompleteResponse500) & {
   headers: Headers;
 };
 
@@ -180,7 +186,7 @@ export const postUploadJobIdComplete = async (jobId: string, options?: RequestIn
 
 
 
-export const getPostUploadJobIdCompleteMutationOptions = <TError = InternalAdaptersHttpHandlersNotFoundResponse | InternalAdaptersHttpHandlersConflictResponse | InternalAdaptersHttpHandlersServerErrorResponse,
+export const getPostUploadJobIdCompleteMutationOptions = <TError = ApiInternalDomainJobNotFoundResponse | ApiInternalDomainJobConflictResponse | ApiInternalDomainJobUnprocessableEntityResponse | ApiInternalDomainJobServerErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUploadJobIdComplete>>, TError,{jobId: string}, TContext>, fetch?: RequestInit}
 ): UseMutationOptions<Awaited<ReturnType<typeof postUploadJobIdComplete>>, TError,{jobId: string}, TContext> => {
 
@@ -209,12 +215,12 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type PostUploadJobIdCompleteMutationResult = NonNullable<Awaited<ReturnType<typeof postUploadJobIdComplete>>>
     
-    export type PostUploadJobIdCompleteMutationError = InternalAdaptersHttpHandlersNotFoundResponse | InternalAdaptersHttpHandlersConflictResponse | InternalAdaptersHttpHandlersServerErrorResponse
+    export type PostUploadJobIdCompleteMutationError = ApiInternalDomainJobNotFoundResponse | ApiInternalDomainJobConflictResponse | ApiInternalDomainJobUnprocessableEntityResponse | ApiInternalDomainJobServerErrorResponse
 
     /**
  * @summary Complete PDF upload
  */
-export const usePostUploadJobIdComplete = <TError = InternalAdaptersHttpHandlersNotFoundResponse | InternalAdaptersHttpHandlersConflictResponse | InternalAdaptersHttpHandlersServerErrorResponse,
+export const usePostUploadJobIdComplete = <TError = ApiInternalDomainJobNotFoundResponse | ApiInternalDomainJobConflictResponse | ApiInternalDomainJobUnprocessableEntityResponse | ApiInternalDomainJobServerErrorResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUploadJobIdComplete>>, TError,{jobId: string}, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postUploadJobIdComplete>>,
