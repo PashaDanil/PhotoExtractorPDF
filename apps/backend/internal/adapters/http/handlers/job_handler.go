@@ -53,6 +53,7 @@ func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
 // @Success 202 {object} job.CompleteUploadResponse
 // @Failure 404 {object} job.NotFoundResponse
 // @Failure 409 {object} job.ConflictResponse
+// @Failure 422 {object} job.UnprocessableEntityResponse
 // @Failure 500 {object} job.ServerErrorResponse
 // @Router /upload/{jobId}/complete [post]
 func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
@@ -65,6 +66,9 @@ func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
 		}
 		if errors.Is(err, errorx.ErrAlreadyCompleted) {
 			return c.JSON(http.StatusConflict, job.ConflictResponse{Error: err.Error()})
+		}
+		if errors.Is(err, errorx.ErrObjectNotFound) {
+			return c.JSON(http.StatusUnprocessableEntity, job.UnprocessableEntityResponse{Error: err.Error()})
 		}
 		return c.JSON(http.StatusInternalServerError, job.ServerErrorResponse{Error: err.Error()})
 	}

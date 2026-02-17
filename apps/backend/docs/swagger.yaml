@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  internal_adapters_http_handlers.CompleteUploadResponse:
+  api_internal_domain_job.CompleteUploadResponse:
     properties:
       job_id:
         example: 550e8400-e29b-41d4-a716-446655440000
@@ -9,13 +9,13 @@ definitions:
         example: queued
         type: string
     type: object
-  internal_adapters_http_handlers.ConflictResponse:
+  api_internal_domain_job.ConflictResponse:
     properties:
       error:
         example: job already completed
         type: string
     type: object
-  internal_adapters_http_handlers.InitUploadResponse:
+  api_internal_domain_job.InitUploadResponse:
     properties:
       job_id:
         example: 550e8400-e29b-41d4-a716-446655440000
@@ -24,16 +24,22 @@ definitions:
         example: https://minio.example.com/upload?signature=...
         type: string
     type: object
-  internal_adapters_http_handlers.NotFoundResponse:
+  api_internal_domain_job.NotFoundResponse:
     properties:
       error:
         example: jobId not found
         type: string
     type: object
-  internal_adapters_http_handlers.ServerErrorResponse:
+  api_internal_domain_job.ServerErrorResponse:
     properties:
       error:
         example: internal server error
+        type: string
+    type: object
+  api_internal_domain_job.UnprocessableEntityResponse:
+    properties:
+      error:
+        example: object not found in storage
         type: string
     type: object
 host: localhost:8080
@@ -60,11 +66,11 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_adapters_http_handlers.InitUploadResponse'
+            $ref: '#/definitions/api_internal_domain_job.InitUploadResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapters_http_handlers.ServerErrorResponse'
+            $ref: '#/definitions/api_internal_domain_job.ServerErrorResponse'
       summary: Initialize PDF upload
       tags:
       - upload
@@ -85,19 +91,23 @@ paths:
         "202":
           description: Accepted
           schema:
-            $ref: '#/definitions/internal_adapters_http_handlers.CompleteUploadResponse'
+            $ref: '#/definitions/api_internal_domain_job.CompleteUploadResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_adapters_http_handlers.NotFoundResponse'
+            $ref: '#/definitions/api_internal_domain_job.NotFoundResponse'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/internal_adapters_http_handlers.ConflictResponse'
+            $ref: '#/definitions/api_internal_domain_job.ConflictResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api_internal_domain_job.UnprocessableEntityResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapters_http_handlers.ServerErrorResponse'
+            $ref: '#/definitions/api_internal_domain_job.ServerErrorResponse'
       summary: Complete PDF upload
       tags:
       - upload
