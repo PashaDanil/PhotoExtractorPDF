@@ -157,7 +157,7 @@ class OCRModel:
 
 if __name__ == "__main__":
     ocr = OCRModel()
-    doc = Document("50137291M.pdf")
+    doc = Document(r"C:\Users\pzaha\PycharmProjects\PhotoExtractorPDFf\50137291M.pdf")
     try:
         start = time.time()
         ocr.process_all_pages(doc)
