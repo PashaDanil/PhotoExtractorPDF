@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"api/internal/config"
+	"api/pkg/config"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -12,9 +12,9 @@ type Redis struct {
 
 func New(cfg *config.Config) (*Redis, error) {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     cfg.Redis.URL,
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.DB,
+		Addr:     cfg.RedisConfig.URL,
+		Password: cfg.RedisConfig.Password,
+		DB:       cfg.RedisConfig.DB,
 	})
 
 	return &Redis{client: rdb}, nil

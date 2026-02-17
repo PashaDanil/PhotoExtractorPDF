@@ -2,7 +2,6 @@ package http
 
 import (
 	"api/internal/adapters/http/handlers"
-	"api/internal/config"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -10,17 +9,13 @@ import (
 )
 
 type Server struct {
-	e   *echo.Echo
-	cfg *config.Config
+	e *echo.Echo
 }
 
 func New(
-	cfg *config.Config,
 	jobHandler *handlers.JobHandler,
 ) (*Server, error) {
-	s := &Server{
-		cfg: cfg,
-	}
+	s := &Server{}
 
 	e := echo.New()
 
@@ -41,8 +36,8 @@ func New(
 	return s, nil
 }
 
-func (s *Server) Run() {
-	s.e.Start(":" + s.cfg.Server.Port)
+func (s *Server) Run(addr string) error {
+	return s.e.Start(addr)
 }
 
 func (s *Server) Shutdown() error {
