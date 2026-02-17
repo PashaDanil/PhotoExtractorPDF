@@ -6,7 +6,7 @@ from extractor.domain.entities.page import PageRaster
 from extractor.domain.entities.bounding_box import BoundingBox
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
-
+import torch
 
 class YoloDetector(ImageDetector):
     def __init__(
@@ -14,7 +14,7 @@ class YoloDetector(ImageDetector):
             model_path="yolov11m-doclaynet.pt",
             imgsz : int = 960,
             classes : List[int] = [6],
-            device : str = "cuda:0"
+            device : str = "cuda"
     ):
 
         self.imgsz = imgsz
@@ -34,7 +34,10 @@ class YoloDetector(ImageDetector):
         if prediction is None:
             return None
 
-        prediction_boxes_data = prediction[0].boxes.numpy().data
+        norm_cord_tensor = prediction.boxes.xyxyn
+        conf_tensor = prediction.boxes.conf.unsqueeze(1)
+        prediction_boxes_data = torch.cat([norm_cord_tensor, conf_tensor], dim=1).cpu()
+
         prediction_boxes = [
             BoundingBox(
                 x1=box[0],
@@ -58,10 +61,23 @@ class YoloDetector(ImageDetector):
             lambda: self._model.predict(page_images, imgsz=self.imgsz, classes=self.classes, device=self.device)
         )
 
+
         if predictions is None:
             return None
+        
+        batch_prediction_boxes_data = [
+            torch.cat(
+                [
+                    prediction.boxes.xyxyn,
+                    prediction.boxes.conf.unsqueeze(1)
+                ],
+                dim=1
+            ).cpu()
+            for prediction in predictions
+        ]
 
-        batch_prediction_boxes_data = [prediction.boxes.numpy().data for prediction in predictions]
+        width = 1
+        height = 1
         batch_prediction_boxes = [
             [
                 BoundingBox(
