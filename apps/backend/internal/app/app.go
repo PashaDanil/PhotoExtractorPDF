@@ -9,6 +9,8 @@ import (
 	"api/internal/adapters/redis"
 	"api/internal/services"
 	"api/pkg/config"
+	"context"
+	"log/slog"
 )
 
 type App struct {
@@ -18,15 +20,10 @@ type App struct {
 	rmq *rabbitmq.RabbitMQ
 }
 
-func New() (*App, error) {
-	a := &App{}
-
-	cfg, err := config.New("config.yaml")
-	if err != nil {
-		return nil, err
-	}
-	a.cfg = cfg
-
+func New(
+	log *slog.Logger,
+	cfg *config.Config,
+) (*App, error) {
 	rdb, err := redis.New(cfg)
 	if err != nil {
 		return nil, err
@@ -54,26 +51,27 @@ func New() (*App, error) {
 	jobService := services.NewJobService(jobStore, objectStorage, publisher)
 	jobHandler := handlers.NewJobHandler(jobService)
 
-	server, err := http.New(jobHandler)
+	server, err := http.New(log, jobHandler, cfg.ServerConfig.Port)
 	if err != nil {
 		rmq.Close()
 		return nil, err
 	}
 
-	a.s = server
-	a.rdb = rdb
-	a.rmq = rmq
-
-	return a, nil
+	return &App{
+		s:   server,
+		cfg: cfg,
+		rdb: rdb,
+		rmq: rmq,
+	}, nil
 }
 
-func (a *App) Run() {
-	a.s.Run(":" + a.cfg.ServerConfig.Port)
+func (a *App) Run() error {
+	return a.s.Run()
 }
 
-func (a *App) Shutdown() {
+func (a *App) Shutdown(ctx context.Context) {
 	if a.s != nil {
-		a.s.Shutdown()
+		a.s.Shutdown(ctx)
 	}
 	if a.rmq != nil {
 		a.rmq.Close()

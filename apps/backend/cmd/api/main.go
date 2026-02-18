@@ -3,10 +3,18 @@ package main
 import (
 	_ "api/docs"
 	"api/internal/app"
-	"log"
+	"api/pkg/config"
+	"api/pkg/logger/sl"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+)
+
+const (
+	envLocal = "local"
+	envDev   = "dev"
+	envProd  = "prod"
 )
 
 // @title PDF to Images API
@@ -24,20 +32,40 @@ import (
 // @BasePath /
 
 func main() {
-	a, err := app.New()
+	cfg := config.MustLoad()
+
+	log := setupLogger(cfg.Env)
+
+	log.Info("info message")
+
+	a, err := app.New(log, cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Error("failed to create app", sl.Err(err))
 	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
-	go func() {
-		<-quit
-		log.Println("Shutting down gracefully...")
-		a.Shutdown()
-		os.Exit(0)
-	}()
-
 	a.Run()
+}
+
+func setupLogger(env string) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case envLocal:
+		log = slog.New(
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envDev:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envProd:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
+		)
+	}
+
+	return log
 }

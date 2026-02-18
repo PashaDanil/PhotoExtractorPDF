@@ -1,13 +1,15 @@
 package config
 
 import (
-	"fmt"
+	"flag"
+	"os"
 
 	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
+	Env string `yaml:"env" env-default:"local"`
+
 	ServerConfig struct {
 		Port string `yaml:"port"`
 	} `yaml:"server"`
@@ -32,14 +34,35 @@ type Config struct {
 	} `yaml:"rabbitmq"`
 }
 
-func New(config string) (*Config, error) {
-	_ = godotenv.Load()
+func MustLoad() *Config {
+	path := fetchConfigPath()
+	if path == "" {
+		panic("config path is empty")
+	}
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		panic("config file does not exist: " + path)
+	}
 
 	var cfg Config
 
-	if err := cleanenv.ReadConfig(config, &cfg); err != nil {
-		return nil, fmt.Errorf("failed to read config: %w", err)
+	err := cleanenv.ReadConfig(path, &cfg)
+	if err != nil {
+		panic("failed to read config: " + err.Error())
 	}
 
-	return &cfg, nil
+	return &cfg
+}
+
+func fetchConfigPath() string {
+	var res string
+
+	flag.StringVar(&res, "config", "", "path to config file")
+	flag.Parse()
+
+	if res == "" {
+		res = os.Getenv("CONFIG_PATH")
+	}
+
+	return res
 }
