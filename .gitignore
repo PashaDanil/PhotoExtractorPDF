@@ -135,6 +135,7 @@ dmypy.json
 .env.*
 !.env.example
 !.env.template
+!.env.tools.example
 *.pem
 *.key
 secrets/
