@@ -11,10 +11,10 @@ import torch
 class YoloDetector(ImageDetector):
     def __init__(
             self,
-            model_path="yolov11m-doclaynet.pt",
-            imgsz : int = 960,
-            classes : List[int] = [6],
-            device : str = "cuda"
+            model_path: str="models/yolov11m-doclaynet.pt",
+            imgsz: int = 960,
+            classes: List[int] = [6],
+            device: str = "cuda"
     ):
 
         self.imgsz = imgsz
