@@ -2,8 +2,8 @@ package rabbitmq
 
 import (
 	"api/pkg/config"
+	"errors"
 	"fmt"
-	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -42,16 +42,19 @@ func (r *RabbitMQ) Channel() *amqp.Channel {
 }
 
 func (r *RabbitMQ) Close() error {
+	var err error
+
 	if r.ch != nil {
-		if err := r.ch.Close(); err != nil {
-			log.Printf("Error closing RabbitMQ channel: %v", err)
+		if e := r.ch.Close(); e != nil {
+			err = errors.Join(err, e)
 		}
 	}
+
 	if r.conn != nil {
-		if err := r.conn.Close(); err != nil {
-			log.Printf("Error closing RabbitMQ connection: %v", err)
-			return err
+		if e := r.conn.Close(); e != nil {
+			err = errors.Join(err, e)
 		}
 	}
-	return nil
+
+	return err
 }

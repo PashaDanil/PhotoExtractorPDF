@@ -1,3 +1,3 @@
 cd apps/backend
 
-go run cmd/api/main.go --config=config.yaml
+go run cmd/api/main.go --config=config/local.yaml

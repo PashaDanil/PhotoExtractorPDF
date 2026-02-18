@@ -4,17 +4,14 @@ import (
 	_ "api/docs"
 	"api/internal/app"
 	"api/pkg/config"
-	"api/pkg/logger/sl"
+	"context"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
-)
+	"time"
 
-const (
-	envLocal = "local"
-	envDev   = "dev"
-	envProd  = "prod"
+	"github.com/PashaDanil/logger"
 )
 
 // @title PDF to Images API
@@ -34,38 +31,53 @@ const (
 func main() {
 	cfg := config.MustLoad()
 
-	log := setupLogger(cfg.Env)
+	log := setupLogger(cfg)
 
-	log.Info("info message")
+	slog.SetDefault(log)
 
-	a, err := app.New(log, cfg)
+	application, err := app.New(log, cfg)
 	if err != nil {
-		log.Error("failed to create app", sl.Err(err))
+		log.Error("app init failed", slog.Any("err", err))
+		os.Exit(1)
 	}
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	a.Run()
+	runErrCh := make(chan error, 1)
+	go func() {
+		runErrCh <- application.Run(ctx)
+	}()
+
+	select {
+	case <-ctx.Done():
+		log.Info("shutdown signal received")
+	case err := <-runErrCh:
+		if err != nil {
+			log.Error("server stopped with error", slog.Any("err", err))
+		} else {
+			log.Info("server stopped")
+		}
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := application.Shutdown(shutdownCtx); err != nil {
+		log.Error("error during shutdown", slog.Any("err", err))
+	}
+
+	log.Info("application stopped")
 }
 
-func setupLogger(env string) *slog.Logger {
-	var log *slog.Logger
-
-	switch env {
-	case envLocal:
-		log = slog.New(
-			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-		)
-	case envDev:
-		log = slog.New(
-			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-		)
-	case envProd:
-		log = slog.New(
-			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
-		)
-	}
+func setupLogger(cfg *config.Config) *slog.Logger {
+	log := logger.New(logger.Config{
+		Service:   cfg.LoggerConfig.Service,
+		Env:       cfg.LoggerConfig.Env,
+		Version:   cfg.LoggerConfig.Version,
+		Level:     cfg.LoggerConfig.Level,
+		AddSource: cfg.LoggerConfig.AddSource,
+	})
 
 	return log
 }

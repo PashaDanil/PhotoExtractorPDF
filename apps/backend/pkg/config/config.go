@@ -8,8 +8,6 @@ import (
 )
 
 type Config struct {
-	Env string `yaml:"env" env-default:"local"`
-
 	ServerConfig struct {
 		Port string `yaml:"port"`
 	} `yaml:"server"`
@@ -32,6 +30,14 @@ type Config struct {
 		User     string `yaml:"user"`
 		Password string `yaml:"password"`
 	} `yaml:"rabbitmq"`
+
+	LoggerConfig struct {
+		Service   string `yaml:"service"`
+		Env       string `yaml:"env"`
+		Version   string `yaml:"version"`
+		Level     string `yaml:"level"`
+		AddSource bool   `yaml:"add_source"`
+	} `yaml:"logger"`
 }
 
 func MustLoad() *Config {

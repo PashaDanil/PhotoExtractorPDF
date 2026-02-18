@@ -1,23 +1,29 @@
 package app
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+
 	_ "api/docs"
-	"api/internal/adapters/http"
 	"api/internal/adapters/http/handlers"
 	"api/internal/adapters/minio"
 	"api/internal/adapters/rabbitmq"
 	"api/internal/adapters/redis"
+	"api/internal/app/rest"
 	"api/internal/services"
 	"api/pkg/config"
-	"context"
 	"log/slog"
 )
 
 type App struct {
-	s   *http.Server
-	cfg *config.Config
-	rdb *redis.Redis
-	rmq *rabbitmq.RabbitMQ
+	RESTserver *rest.Server
+	cfg        *config.Config
+	rdb        *redis.Redis
+	rmq        *rabbitmq.RabbitMQ
+	pub        *rabbitmq.Publisher
+	log        *slog.Logger
 }
 
 func New(
@@ -31,52 +37,93 @@ func New(
 
 	mio, err := minio.New(cfg)
 	if err != nil {
+		_ = rdb.Close()
 		return nil, err
 	}
 
 	rmq, err := rabbitmq.New(cfg)
 	if err != nil {
+		_ = rdb.Close()
 		return nil, err
 	}
 
 	if err := rabbitmq.Setup(rmq); err != nil {
-		rmq.Close()
+		_ = rmq.Close()
+		_ = rdb.Close()
 		return nil, err
 	}
 
 	jobStore := redis.NewJobStoreRepo(rdb)
 	objectStorage := minio.NewObjectStorageRepo(mio)
+
 	publisher := rabbitmq.NewPublisher(rmq.Channel())
 
 	jobService := services.NewJobService(jobStore, objectStorage, publisher)
 	jobHandler := handlers.NewJobHandler(jobService)
 
-	server, err := http.New(log, jobHandler, cfg.ServerConfig.Port)
+	server, err := rest.New(log, jobHandler, cfg.ServerConfig.Port)
 	if err != nil {
-		rmq.Close()
+		_ = rmq.Close()
+		_ = rdb.Close()
 		return nil, err
 	}
 
 	return &App{
-		s:   server,
-		cfg: cfg,
-		rdb: rdb,
-		rmq: rmq,
+		RESTserver: server,
+		cfg:        cfg,
+		rdb:        rdb,
+		rmq:        rmq,
+		pub:        publisher,
+		log:        log,
 	}, nil
 }
 
-func (a *App) Run() error {
-	return a.s.Run()
+func (a *App) Run(ctx context.Context) error {
+	if a.RESTserver == nil {
+		return fmt.Errorf("REST server is nil")
+	}
+
+	errCh := make(chan error, 1)
+
+	go func() {
+		errCh <- a.RESTserver.Run()
+	}()
+
+	select {
+	case <-ctx.Done():
+		return nil
+	case err := <-errCh:
+		if errors.Is(err, http.ErrServerClosed) {
+			return nil
+		}
+
+		return err
+	}
 }
 
-func (a *App) Shutdown(ctx context.Context) {
-	if a.s != nil {
-		a.s.Shutdown(ctx)
+func (a *App) Shutdown(ctx context.Context) error {
+	var err error
+
+	if a.RESTserver != nil {
+		if e := a.RESTserver.Stop(ctx); e != nil {
+			a.log.Error("error stopping REST server", slog.Any("err", e))
+			err = errors.Join(err, e)
+		}
 	}
+
 	if a.rmq != nil {
-		a.rmq.Close()
+		if e := a.rmq.Close(); e != nil {
+			a.log.Error("error closing rabbitmq", slog.Any("err", e))
+			err = errors.Join(err, e)
+		}
 	}
+
 	if a.rdb != nil {
-		a.rdb.Close()
+		if e := a.rdb.Close(); e != nil {
+			a.log.Error("error closing redis", slog.Any("err", e))
+			err = errors.Join(err, e)
+		}
 	}
+
+	return err
 }

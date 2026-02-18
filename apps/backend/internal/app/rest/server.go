@@ -1,4 +1,4 @@
-package http
+package rest
 
 import (
 	"api/internal/adapters/http/handlers"
@@ -57,14 +57,19 @@ func (s *Server) Run() error {
 
 	log.Info("starting HTTP server")
 
-	return s.e.Start(":" + s.port)
+	err := s.e.Start(":" + s.port)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *Server) Shutdown(ctx context.Context) error {
-	const op = "http.Server.Shutdown"
+func (s *Server) Stop(ctx context.Context) error {
+	const op = "RESTserver.Stop"
 
 	s.log.With(slog.String("op", op)).
-		Info("shutting down HTTP server")
+		Info("shutting down HTTP server", slog.String("port", s.port))
 
 	return s.e.Shutdown(ctx)
 }

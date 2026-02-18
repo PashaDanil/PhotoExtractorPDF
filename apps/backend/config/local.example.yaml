@@ -1,0 +1,25 @@
+server:
+  port: "8080"
+
+redis:
+  url: "localhost:6379"
+  password: "redis"
+  db: 0
+
+minio:
+  url: "localhost:9000"
+  user: "minio"
+  password: "minio12345"
+  use_ssl: false
+
+rabbitmq:
+  url: "localhost:5672"
+  user: "rabbit"
+  password: "rabbit123"
+
+logger:
+  service: "pdf-api"
+  env: "dev"
+  version: "v1.0.0"
+  level: "debug"
+  add_source: false

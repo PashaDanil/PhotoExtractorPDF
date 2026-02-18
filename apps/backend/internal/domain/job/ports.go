@@ -19,5 +19,4 @@ type JobStore interface {
 
 type QueuePublisher interface {
 	PublishJob(ctx context.Context, jobID string, pdfKey string) error
-	Close() error
 }

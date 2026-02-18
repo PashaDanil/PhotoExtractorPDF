@@ -44,7 +44,3 @@ func (p *Publisher) PublishJob(ctx context.Context, jobID string, pdfKey string)
 
 	return nil
 }
-
-func (p *Publisher) Close() error {
-	return p.ch.Close()
-}
