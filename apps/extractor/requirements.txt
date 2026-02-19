@@ -2,5 +2,5 @@ numpy==2.4.2
 PyMuPDF==1.26.7
 ultralytics==8.4.14
 zipstream==1.1.4
-minio-async==1.0.1
-torch==2.10.0 # for cpu only
+miniopy-async==1.23.4
+torch==2.10.0 # for cpu only. For gpu support visit pytorch.org Get Started page
