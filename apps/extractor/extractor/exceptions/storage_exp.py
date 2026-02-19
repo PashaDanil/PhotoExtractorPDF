@@ -10,8 +10,8 @@ class StorageConnectionError(StorageError):
     pass
 
 
-class StorageUploadError(StorageError):
-    """Ошибка при загрузке файла."""
+class StorageOperationError(StorageError):
+    """Ошибка при работе с хранилищем."""
     pass
 
 
@@ -28,3 +28,12 @@ class StorageQuotaExceededError(StorageError):
 class StorageTimeoutError(StorageError):
     """Таймаут операции."""
     pass
+
+class StorageAccessError(StorageError):
+    """Ошибка доступа."""
+
+class StorageValidationError(StorageError):
+    """Некорректные входные данные для операции."""
+
+class StorageUnexpectedError(StorageError):
+    """Непредвиденная ошибка."""
