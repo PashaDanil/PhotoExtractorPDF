@@ -1,7 +1,7 @@
 package rabbitmq
 
 import (
-	"api/pkg/config"
+	"api/internal/config"
 	"errors"
 	"fmt"
 

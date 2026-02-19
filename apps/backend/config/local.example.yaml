@@ -11,6 +11,7 @@ minio:
   user: "minio"
   password: "minio12345"
   use_ssl: false
+  bucket: "imgpdf"
 
 rabbitmq:
   url: "localhost:5672"

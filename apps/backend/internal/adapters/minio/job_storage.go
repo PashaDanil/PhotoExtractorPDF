@@ -1,7 +1,6 @@
 package minio
 
 import (
-	"api/pkg/errorx"
 	"context"
 	"time"
 
@@ -10,32 +9,30 @@ import (
 
 type ObjectStorageRepo struct {
 	client *minio.Client
+	bucket string
 }
 
-func NewObjectStorageRepo(mio *minio.Client) *ObjectStorageRepo {
-	return &ObjectStorageRepo{client: mio}
+func NewObjectStorageRepo(mio *minio.Client, bucket string) *ObjectStorageRepo {
+	return &ObjectStorageRepo{client: mio, bucket: bucket}
 }
 
 func (m *ObjectStorageRepo) GetPresignedURL(ctx context.Context, pdfKey string, expires time.Duration) (string, error) {
-	presignedURL, err := m.client.PresignedPutObject(ctx, "imgpdf", pdfKey, expires)
+	const op = "ObjectStorageRepo.GetPresignedURL"
+
+	u, err := m.client.PresignedPutObject(ctx, m.bucket, pdfKey, expires)
 	if err != nil {
-		return "", err
+		return "", normalizeMinioErr(op, err)
 	}
-	return presignedURL.String(), nil
+
+	return u.String(), nil
 }
 
 func (m *ObjectStorageRepo) CheckObjectExists(ctx context.Context, pdfKey string) error {
-	info, err := m.client.StatObject(ctx, "imgpdf", pdfKey, minio.StatObjectOptions{})
-	if err != nil {
-		errResponse := minio.ToErrorResponse(err)
-		if errResponse.Code == "NoSuchKey" {
-			return errorx.ErrObjectNotFound
-		}
-		return err
-	}
+	const op = "ObjectStorageRepo.CheckObjectExists"
 
-	if info.Size <= 0 {
-		return errorx.ErrObjectNotFound
+	_, err := m.client.StatObject(ctx, m.bucket, pdfKey, minio.StatObjectOptions{})
+	if err != nil {
+		return normalizeMinioErr(op, err)
 	}
 
 	return nil

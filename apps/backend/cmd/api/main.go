@@ -3,7 +3,7 @@ package main
 import (
 	_ "api/docs"
 	"api/internal/app"
-	"api/pkg/config"
+	"api/internal/config"
 	"context"
 	"log/slog"
 	"os"
@@ -35,14 +35,14 @@ func main() {
 
 	slog.SetDefault(log)
 
-	application, err := app.New(log, cfg)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	application, err := app.New(ctx, log, cfg)
 	if err != nil {
 		log.Error("app init failed", slog.Any("err", err))
 		os.Exit(1)
 	}
-
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
 
 	runErrCh := make(chan error, 1)
 	go func() {

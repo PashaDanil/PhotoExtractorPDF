@@ -2,7 +2,6 @@ package redis
 
 import (
 	"api/internal/domain/job"
-	"api/pkg/errorx"
 	"context"
 	"fmt"
 
@@ -47,12 +46,12 @@ func (r *JobStoreRepo) CheckJobStatusQueued(ctx context.Context, jobID string) e
 	currentStatus, err := r.rdb.HGet(ctx, jobID, "status").Result()
 	if err != nil {
 		if err == redis.Nil {
-			return fmt.Errorf("job %s not found: %w", jobID, errorx.ErrNotFound)
+			return fmt.Errorf("job %s not found: %w", jobID, job.ErrNotFound)
 		}
 		return err
 	}
 	if currentStatus == string(job.JobStatusQueued) {
-		return fmt.Errorf("job %s already queued: %w", jobID, errorx.ErrAlreadyCompleted)
+		return fmt.Errorf("job %s already queued: %w", jobID, job.ErrAlreadyCompleted)
 	}
 	return nil
 }
@@ -61,7 +60,7 @@ func (r *JobStoreRepo) GetPdfKey(ctx context.Context, jobID string) (string, err
 	pdfKey, err := r.rdb.HGet(ctx, jobID, "pdf_key").Result()
 	if err != nil {
 		if err == redis.Nil {
-			return "", fmt.Errorf("job %s not found: %w", jobID, errorx.ErrNotFound)
+			return "", fmt.Errorf("job %s not found: %w", jobID, job.ErrNotFound)
 		}
 		return "", err
 	}

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"api/internal/domain/job"
-	"api/pkg/errorx"
 	"context"
 	"errors"
 	"net/http"
@@ -64,15 +63,21 @@ func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
 func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
 	jobID := c.Param("jobId")
 
+	if jobID == "" {
+		return c.JSON(
+			http.StatusBadRequest, job.ServerErrorResponse{Error: "jobId is required"},
+		)
+	}
+
 	err := h.jobService.CompleteUpload(c.Request().Context(), jobID)
 	if err != nil {
-		if errors.Is(err, errorx.ErrNotFound) {
+		if errors.Is(err, job.ErrNotFound) {
 			return c.JSON(http.StatusNotFound, job.NotFoundResponse{Error: err.Error()})
 		}
-		if errors.Is(err, errorx.ErrAlreadyCompleted) {
+		if errors.Is(err, job.ErrAlreadyCompleted) {
 			return c.JSON(http.StatusConflict, job.ConflictResponse{Error: err.Error()})
 		}
-		if errors.Is(err, errorx.ErrObjectNotFound) {
+		if errors.Is(err, job.ErrObjectNotFound) {
 			return c.JSON(http.StatusUnprocessableEntity, job.UnprocessableEntityResponse{Error: err.Error()})
 		}
 		return c.JSON(http.StatusInternalServerError, job.ServerErrorResponse{Error: err.Error()})

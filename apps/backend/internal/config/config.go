@@ -23,6 +23,7 @@ type Config struct {
 		User     string `yaml:"user"`
 		Password string `yaml:"password"`
 		UseSSL   bool   `yaml:"use_ssl"`
+		Bucket   string `yaml:"bucket"`
 	} `yaml:"minio"`
 
 	RabbitMQConfig struct {
