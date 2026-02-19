@@ -36,7 +36,7 @@ func New(
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	uploads := e.Group("/uploads")
+	uploads := e.Group("/upload")
 	uploads.POST("", jobHandler.HandlePDFUploadRequest)
 	uploads.POST("/:jobId/complete", jobHandler.HandlePDFUploadComplete)
 
