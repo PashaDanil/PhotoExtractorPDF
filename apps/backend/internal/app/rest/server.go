@@ -3,7 +3,6 @@ package rest
 import (
 	"api/internal/adapters/http/handlers"
 	"context"
-	"log/slog"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -11,13 +10,11 @@ import (
 )
 
 type Server struct {
-	log  *slog.Logger
 	e    *echo.Echo
 	port string
 }
 
 func New(
-	log *slog.Logger,
 	jobHandler *handlers.JobHandler,
 	port string,
 ) (*Server, error) {
@@ -41,7 +38,6 @@ func New(
 	uploads.POST("/:jobId/complete", jobHandler.HandlePDFUploadComplete)
 
 	return &Server{
-		log:  log,
 		e:    e,
 		port: port,
 	}, nil
@@ -50,15 +46,9 @@ func New(
 func (s *Server) Run() error {
 	const op = "http.Server.Run"
 
-	log := s.log.With(
-		slog.String("op", op),
-		slog.String("port", s.port),
-	)
-
-	log.Info("starting HTTP server")
-
 	err := s.e.Start(":" + s.port)
 	if err != nil {
+		// обработать ошибку
 		return err
 	}
 
@@ -68,8 +58,6 @@ func (s *Server) Run() error {
 func (s *Server) Stop(ctx context.Context) error {
 	const op = "RESTserver.Stop"
 
-	s.log.With(slog.String("op", op)).
-		Info("shutting down HTTP server", slog.String("port", s.port))
-
+	// обработать ошибку
 	return s.e.Shutdown(ctx)
 }

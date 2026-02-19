@@ -1,5 +1,7 @@
 package rabbitmq
 
+// TODO: переделать клиент rabbitmq
+
 import (
 	"api/internal/config"
 	"errors"
@@ -22,13 +24,15 @@ func New(cfg *config.Config) (*RabbitMQ, error) {
 
 	conn, err := amqp.Dial(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+		// обработать ошибку
+		return nil, err
 	}
 
 	ch, err := conn.Channel()
 	if err != nil {
 		conn.Close()
-		return nil, fmt.Errorf("failed to open channel: %w", err)
+		// обработать ошибку
+		return nil, err
 	}
 
 	return &RabbitMQ{
@@ -55,6 +59,8 @@ func (r *RabbitMQ) Close() error {
 			err = errors.Join(err, e)
 		}
 	}
+
+	// обработать ошибку
 
 	return err
 }

@@ -3,7 +3,6 @@ package redis
 import (
 	"api/internal/domain/job"
 	"context"
-	"fmt"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -24,6 +23,7 @@ func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *job.Job) error {
 		"updated_at": jb.UpdatedAt,
 	})
 	if err != nil {
+		// обработать ошибку
 		return err.Err()
 	}
 
@@ -36,6 +36,7 @@ func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, jb *job.Job) error {
 		"updated_at": jb.UpdatedAt,
 	})
 	if err := cmd.Err(); err != nil {
+		// обработать ошибку
 		return err
 	}
 
@@ -46,12 +47,15 @@ func (r *JobStoreRepo) CheckJobStatusQueued(ctx context.Context, jobID string) e
 	currentStatus, err := r.rdb.HGet(ctx, jobID, "status").Result()
 	if err != nil {
 		if err == redis.Nil {
-			return fmt.Errorf("job %s not found: %w", jobID, job.ErrNotFound)
+			// обработать ошибку
+			return err
 		}
+		// обработать ошибку
 		return err
 	}
 	if currentStatus == string(job.JobStatusQueued) {
-		return fmt.Errorf("job %s already queued: %w", jobID, job.ErrAlreadyCompleted)
+		// обработать ошибку
+		return err
 	}
 	return nil
 }
@@ -60,8 +64,10 @@ func (r *JobStoreRepo) GetPdfKey(ctx context.Context, jobID string) (string, err
 	pdfKey, err := r.rdb.HGet(ctx, jobID, "pdf_key").Result()
 	if err != nil {
 		if err == redis.Nil {
-			return "", fmt.Errorf("job %s not found: %w", jobID, job.ErrNotFound)
+			// обработать ошибку
+			return "", err
 		}
+		// обработать ошибку
 		return "", err
 	}
 	return pdfKey, nil

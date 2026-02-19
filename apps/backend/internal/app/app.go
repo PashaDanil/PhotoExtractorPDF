@@ -14,9 +14,6 @@ import (
 	"api/internal/app/rest"
 	"api/internal/config"
 	"api/internal/services"
-	"log/slog"
-
-	"github.com/PashaDanil/logger"
 )
 
 type App struct {
@@ -25,43 +22,35 @@ type App struct {
 	rdb        *redis.Redis
 	rmq        *rabbitmq.RabbitMQ
 	pub        *rabbitmq.Publisher
-	log        *slog.Logger
 }
 
 func New(
 	ctx context.Context,
-	log *slog.Logger,
 	cfg *config.Config,
 ) (*App, error) {
-	rdb, err := redis.New(ctx, log, cfg)
+	rdb, err := redis.New(ctx, cfg)
 	if err != nil {
-		log.Error("redis init failed",
-			slog.String("component", "redis"),
-			logger.Err(err),
-		)
+		// обработать ошибку
 		return nil, err
 	}
 
-	mio, err := minio.New(ctx, log, cfg)
+	mio, err := minio.New(ctx, cfg)
 	if err != nil {
+		// обработать ошибку
 		_ = rdb.Close()
-
-		log.Error("minio init failed",
-			slog.String("component", "minio"),
-			logger.Err(err),
-		)
 
 		return nil, err
 	}
 
 	rmq, err := rabbitmq.New(cfg)
 	if err != nil {
-		log.Error("rabbitmq init failed", slog.Any("err", err))
+		// обработать ошибку
 		return nil, err
 	}
 
 	if err := rabbitmq.Setup(rmq); err != nil {
 		_ = rmq.Close()
+		// обработать ошибку
 		return nil, err
 	}
 
@@ -73,10 +62,11 @@ func New(
 	jobService := services.NewJobService(jobStore, objectStorage, pub)
 	jobHandler := handlers.NewJobHandler(jobService)
 
-	server, err := rest.New(log, jobHandler, cfg.ServerConfig.Port)
+	server, err := rest.New(jobHandler, cfg.ServerConfig.Port)
 	if err != nil {
 		_ = rmq.Close()
 		_ = rdb.Close()
+		// обработать ошибку
 		return nil, err
 	}
 
@@ -85,13 +75,12 @@ func New(
 		cfg:        cfg,
 		rdb:        rdb,
 		rmq:        rmq,
-		pub:        pub,
-		log:        log,
 	}, nil
 }
 
 func (a *App) Run(ctx context.Context) error {
 	if a.RESTserver == nil {
+		// обработать ошибку
 		return fmt.Errorf("REST server is nil")
 	}
 
@@ -105,34 +94,34 @@ func (a *App) Run(ctx context.Context) error {
 	case <-ctx.Done():
 		return nil
 	case err := <-errCh:
+		// обработать ошибку
 		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
 
+		// обработать ошибку
 		return err
 	}
 }
 
 func (a *App) Shutdown(ctx context.Context) error {
 	var err error
+	// обработать ошибку
 
 	if a.RESTserver != nil {
 		if e := a.RESTserver.Stop(ctx); e != nil {
-			a.log.Error("error stopping REST server", logger.Err(e))
 			err = errors.Join(err, e)
 		}
 	}
 
 	if a.rmq != nil {
 		if e := a.rmq.Close(); e != nil {
-			a.log.Error("error closing rabbitmq", logger.Err(e))
 			err = errors.Join(err, e)
 		}
 	}
 
 	if a.rdb != nil {
 		if e := a.rdb.Close(); e != nil {
-			a.log.Error("error closing redis", logger.Err(e))
 			err = errors.Join(err, e)
 		}
 	}

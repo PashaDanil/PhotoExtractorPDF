@@ -36,6 +36,7 @@ func NewJobHandler(jobService JobService) *JobHandler {
 func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
 	jb, uploadURL, err := h.jobService.InitUpload(c.Request().Context())
 	if err != nil {
+		// обработать ошибку
 		return c.JSON(http.StatusInternalServerError, job.ServerErrorResponse{Error: err.Error()})
 	}
 
@@ -44,6 +45,7 @@ func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
 		UploadURL: uploadURL,
 	}
 
+	// обработать ошибку
 	return c.JSON(http.StatusCreated, response)
 }
 
@@ -64,12 +66,14 @@ func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
 	jobID := c.Param("jobId")
 
 	if jobID == "" {
+		// обработать ошибку
 		return c.JSON(
 			http.StatusBadRequest, job.ServerErrorResponse{Error: "jobId is required"},
 		)
 	}
 
 	err := h.jobService.CompleteUpload(c.Request().Context(), jobID)
+	// обработать ошибку
 	if err != nil {
 		if errors.Is(err, job.ErrNotFound) {
 			return c.JSON(http.StatusNotFound, job.NotFoundResponse{Error: err.Error()})
@@ -88,5 +92,6 @@ func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
 		Status: string(job.JobStatusQueued),
 	}
 
+	// обработать ошибку
 	return c.JSON(http.StatusAccepted, response)
 }

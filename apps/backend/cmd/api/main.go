@@ -38,7 +38,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	application, err := app.New(ctx, log, cfg)
+	application, err := app.New(ctx, cfg)
 	if err != nil {
 		log.Error("app init failed", slog.Any("err", err))
 		os.Exit(1)
@@ -64,7 +64,7 @@ func main() {
 	defer cancel()
 
 	if err := application.Shutdown(shutdownCtx); err != nil {
-		log.Error("error during shutdown", slog.Any("err", err))
+		// обработать ошибку
 	}
 
 	log.Info("application stopped")

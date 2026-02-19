@@ -1,5 +1,7 @@
 package rabbitmq
 
+// TODO: переделать клиент rabbitmq
+
 import (
 	"api/internal/domain/task"
 	"context"
@@ -24,6 +26,7 @@ func (p *Publisher) PublishJob(ctx context.Context, jobID string, pdfKey string)
 
 	body, err := json.Marshal(msg)
 	if err != nil {
+		// обработать ошибку
 		return err
 	}
 
@@ -39,6 +42,7 @@ func (p *Publisher) PublishJob(ctx context.Context, jobID string, pdfKey string)
 		},
 	)
 	if err != nil {
+		// обработать ошибку
 		return err
 	}
 

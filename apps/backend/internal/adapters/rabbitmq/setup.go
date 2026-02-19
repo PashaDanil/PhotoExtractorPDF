@@ -1,5 +1,7 @@
 package rabbitmq
 
+// TODO: переделать клиент rabbitmq
+
 func Setup(rmq *RabbitMQ) error {
 	ch := rmq.Channel()
 	err := ch.ExchangeDeclare(
@@ -12,6 +14,7 @@ func Setup(rmq *RabbitMQ) error {
 		nil,
 	)
 	if err != nil {
+		// обработать ошибку
 		return err
 	}
 
@@ -24,6 +27,7 @@ func Setup(rmq *RabbitMQ) error {
 		nil,
 	)
 	if err != nil {
+		// обработать ошибку
 		return err
 	}
 

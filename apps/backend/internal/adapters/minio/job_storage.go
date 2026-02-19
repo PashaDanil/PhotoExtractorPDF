@@ -21,7 +21,8 @@ func (m *ObjectStorageRepo) GetPresignedURL(ctx context.Context, pdfKey string, 
 
 	u, err := m.client.PresignedPutObject(ctx, m.bucket, pdfKey, expires)
 	if err != nil {
-		return "", normalizeMinioErr(op, err)
+		// обработать ошибку
+		return "", err
 	}
 
 	return u.String(), nil
@@ -32,7 +33,8 @@ func (m *ObjectStorageRepo) CheckObjectExists(ctx context.Context, pdfKey string
 
 	_, err := m.client.StatObject(ctx, m.bucket, pdfKey, minio.StatObjectOptions{})
 	if err != nil {
-		return normalizeMinioErr(op, err)
+		// обработать ошибку
+		return err
 	}
 
 	return nil
