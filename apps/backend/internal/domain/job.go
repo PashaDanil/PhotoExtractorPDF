@@ -1,11 +1,17 @@
 package domain
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type Job struct {
-	JobID     string    `json:"job_id"`
-	Status    JobStatus `json:"status"`
-	PDFKey    string    `json:"pdf_key"`
-	CreatedAt int64     `json:"created_at"`
-	UpdatedAt int64     `json:"updated_at"`
+	JobID     uuid.UUID
+	Status    JobStatus
+	PDFKey    string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type JobStatus string
@@ -20,7 +26,7 @@ const (
 
 // InitUploadResponse represents the response when initializing a PDF upload
 // @name InitUploadResponse
-type InitUploadResponse struct {
+type JobResponse struct {
 	JobID     string `json:"job_id" example:"550e8400-e29b-41d4-a716-446655440000"`
 	UploadURL string `json:"upload_url" example:"https://minio.example.com/upload?signature=..."`
 }

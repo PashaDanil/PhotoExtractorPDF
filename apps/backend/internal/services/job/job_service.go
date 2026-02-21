@@ -17,12 +17,12 @@ type ObjectStorage interface {
 type JobStore interface {
 	CreateJob(ctx context.Context, job *domain.Job) error
 	MarkQueuedJob(ctx context.Context, job *domain.Job) error
-	CheckJobStatusQueued(ctx context.Context, jobID string) error
-	GetPdfKey(ctx context.Context, jobID string) (string, error)
+	CheckJobStatusQueued(ctx context.Context, jobID uuid.UUID) error
+	GetPdfKey(ctx context.Context, jobID uuid.UUID) (string, error)
 }
 
 type QueuePublisher interface {
-	PublishJob(ctx context.Context, jobID string, pdfKey string) error
+	PublishJob(ctx context.Context, jobID uuid.UUID, pdfKey string) error
 }
 
 type JobService struct {
@@ -40,7 +40,7 @@ func NewJobService(jobStore JobStore, objectStorage ObjectStorage, publisher Que
 }
 
 func (s *JobService) InitUpload(ctx context.Context) (*domain.Job, string, error) {
-	jobID := uuid.NewString()
+	jobID := uuid.New()
 	pdfKey := fmt.Sprintf("pdf/%s.pdf", jobID)
 	now := time.Now()
 
@@ -53,8 +53,8 @@ func (s *JobService) InitUpload(ctx context.Context) (*domain.Job, string, error
 		JobID:     jobID,
 		Status:    domain.JobStatusCreated,
 		PDFKey:    pdfKey,
-		CreatedAt: now.Unix(),
-		UpdatedAt: now.Unix(),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	if err = s.jobStore.CreateJob(ctx, jb); err != nil {
@@ -64,7 +64,7 @@ func (s *JobService) InitUpload(ctx context.Context) (*domain.Job, string, error
 	return jb, uploadURL, nil
 }
 
-func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
+func (s *JobService) CompleteUpload(ctx context.Context, jobID uuid.UUID) error {
 	// проверяем статус
 	err := s.jobStore.CheckJobStatusQueued(ctx, jobID)
 	if err != nil {
@@ -88,7 +88,7 @@ func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
 	jb := &domain.Job{
 		JobID:     jobID,
 		Status:    domain.JobStatusQueued,
-		UpdatedAt: now.Unix(),
+		UpdatedAt: now,
 	}
 
 	err = s.jobStore.MarkQueuedJob(ctx, jb)

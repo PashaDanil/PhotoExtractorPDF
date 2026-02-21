@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -16,9 +17,12 @@ func NewPublisher(ch *amqp.Channel) *Publisher {
 	return &Publisher{ch: ch}
 }
 
-func (p *Publisher) PublishJob(ctx context.Context, jobID string, pdfKey string) error {
+func (p *Publisher) PublishJob(ctx context.Context, jobID uuid.UUID, pdfKey string) error {
+
+	// ToTask
+
 	msg := domain.JobTask{
-		JobID:  jobID,
+		JobID:  jobID.String(),
 		PDFKey: pdfKey,
 	}
 

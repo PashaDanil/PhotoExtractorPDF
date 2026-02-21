@@ -2,17 +2,17 @@ package handlers
 
 import (
 	"api/internal/domain"
-	errs "api/internal/errors"
 	"context"
-	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 type JobService interface {
 	InitUpload(ctx context.Context) (*domain.Job, string, error)
-	CompleteUpload(ctx context.Context, jobID string) error
+	CompleteUpload(ctx context.Context, jobID uuid.UUID) error
 }
 
 type JobHandler struct {
@@ -25,69 +25,58 @@ func NewJobHandler(jobService JobService) *JobHandler {
 	}
 }
 
-// HandlePDFUploadRequest godoc
-// @Summary Initialize PDF upload
-// @Description Initialize a new PDF upload job and get presigned upload URL
-// @Tags upload
-// @Accept json
-// @Produce json
-// @Success 201 {object} job.InitUploadResponse
-// @Failure 500 {object} job.ServerErrorResponse
-// @Router /upload [post]
 func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
-	jb, uploadURL, err := h.jobService.InitUpload(c.Request().Context())
+	ctx := c.Request().Context()
+
+	jb, uploadURL, err := h.jobService.InitUpload(ctx)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, domain.ServerErrorResponse{Error: err.Error()})
+		return echo.ErrInternalServerError
 	}
 
-	response := domain.InitUploadResponse{
-		JobID:     jb.JobID,
+	// ToResponse
+
+	response := domain.JobResponse{
+		JobID:     jb.JobID.String(),
 		UploadURL: uploadURL,
 	}
 
 	return c.JSON(http.StatusCreated, response)
 }
 
-// HandlePDFUploadComplete godoc
-// @Summary Complete PDF upload
-// @Description Mark the PDF upload as complete and queue for processing
-// @Tags upload
-// @Accept json
-// @Produce json
-// @Param jobId path string true "Job ID"
-// @Success 202 {object} job.CompleteUploadResponse
-// @Failure 404 {object} job.NotFoundResponse
-// @Failure 409 {object} job.ConflictResponse
-// @Failure 422 {object} job.UnprocessableEntityResponse
-// @Failure 500 {object} job.ServerErrorResponse
-// @Router /upload/{jobId}/complete [post]
 func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	jobID := c.Param("jobId")
 
-	if jobID == "" {
-		return c.JSON(
-			http.StatusBadRequest, domain.ServerErrorResponse{Error: "jobId is required"},
-		)
+	id, err := validateJobID(jobID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	err := h.jobService.CompleteUpload(c.Request().Context(), jobID)
+	err = h.jobService.CompleteUpload(ctx, id)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			return c.JSON(http.StatusNotFound, domain.NotFoundResponse{Error: err.Error()})
-		}
-		if errors.Is(err, errs.ErrAlreadyCompleted) {
-			return c.JSON(http.StatusConflict, domain.ConflictResponse{Error: err.Error()})
-		}
-		if errors.Is(err, errs.ErrObjectNotFound) {
-			return c.JSON(http.StatusUnprocessableEntity, domain.UnprocessableEntityResponse{Error: err.Error()})
-		}
-		return c.JSON(http.StatusInternalServerError, domain.ServerErrorResponse{Error: err.Error()})
+		return echo.ErrInternalServerError
 	}
+
+	// ToResponse
 
 	response := domain.CompleteUploadResponse{
-		JobID:  jobID,
+		JobID:  id.String(),
 		Status: string(domain.JobStatusQueued),
 	}
 
 	return c.JSON(http.StatusAccepted, response)
+}
+
+func validateJobID(jobID string) (uuid.UUID, error) {
+	if jobID == "" {
+		return uuid.Nil, fmt.Errorf("jobId is required")
+	}
+
+	id, err := uuid.Parse(jobID)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("invalid jobID: %w", err)
+	}
+
+	return id, nil
 }
