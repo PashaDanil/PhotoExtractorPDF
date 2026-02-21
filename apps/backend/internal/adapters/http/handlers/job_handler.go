@@ -11,7 +11,7 @@ import (
 )
 
 type JobService interface {
-	InitUpload(ctx context.Context) (*domain.Job, string, error)
+	InitUpload(ctx context.Context) (*domain.Job, error)
 	CompleteUpload(ctx context.Context, jobID uuid.UUID) error
 }
 
@@ -28,17 +28,12 @@ func NewJobHandler(jobService JobService) *JobHandler {
 func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	jb, uploadURL, err := h.jobService.InitUpload(ctx)
+	jb, err := h.jobService.InitUpload(ctx)
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
 
-	// ToResponse
-
-	response := domain.JobResponse{
-		JobID:     jb.JobID.String(),
-		UploadURL: uploadURL,
-	}
+	response := jb.ToInitResponse()
 
 	return c.JSON(http.StatusCreated, response)
 }
@@ -58,14 +53,9 @@ func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	// ToResponse
-
-	response := domain.CompleteUploadResponse{
-		JobID:  id.String(),
-		Status: string(domain.JobStatusQueued),
-	}
-
-	return c.JSON(http.StatusAccepted, response)
+	return c.JSON(http.StatusAccepted, map[string]string{
+		"job_id": id.String(),
+	})
 }
 
 func validateJobID(jobID string) (uuid.UUID, error) {

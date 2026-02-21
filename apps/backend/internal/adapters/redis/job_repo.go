@@ -17,14 +17,14 @@ func NewJobStoreRepo(r *Redis) *JobStoreRepo {
 	return &JobStoreRepo{rdb: r.Client()}
 }
 
-func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *domain.Job) error {
-	key := jb.JobID.String()
+func (r *JobStoreRepo) CreateJob(ctx context.Context, jb domain.Job) error {
+	record := jb.ToRecord()
 
-	err := r.rdb.HSet(ctx, key, map[string]any{
-		"status":     string(jb.Status),
-		"pdf_key":    jb.PDFKey,
-		"created_at": jb.CreatedAt,
-		"updated_at": jb.UpdatedAt,
+	err := r.rdb.HSet(ctx, record.JobID, map[string]any{
+		"status":     record.Status,
+		"pdf_key":    record.PDFKey,
+		"created_at": record.CreatedAt,
+		"updated_at": record.UpdatedAt,
 	})
 	if err != nil {
 		return err.Err()
@@ -33,12 +33,12 @@ func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *domain.Job) error {
 	return nil
 }
 
-func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, jb *domain.Job) error {
-	key := jb.JobID.String()
+func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, jb domain.Job) error {
+	record := jb.ToRecord()
 
-	err := r.rdb.HSet(ctx, key, map[string]any{
-		"status":     string(jb.Status),
-		"updated_at": jb.UpdatedAt,
+	err := r.rdb.HSet(ctx, record.JobID, map[string]any{
+		"status":     record.Status,
+		"updated_at": record.UpdatedAt,
 	})
 	if err != nil {
 		return err.Err()

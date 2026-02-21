@@ -15,14 +15,14 @@ type ObjectStorage interface {
 }
 
 type JobStore interface {
-	CreateJob(ctx context.Context, job *domain.Job) error
-	MarkQueuedJob(ctx context.Context, job *domain.Job) error
+	CreateJob(ctx context.Context, job domain.Job) error
+	MarkQueuedJob(ctx context.Context, job domain.Job) error
 	CheckJobStatusQueued(ctx context.Context, jobID uuid.UUID) error
 	GetPdfKey(ctx context.Context, jobID uuid.UUID) (string, error)
 }
 
 type QueuePublisher interface {
-	PublishJob(ctx context.Context, jobID uuid.UUID, pdfKey string) error
+	PublishJob(ctx context.Context, jb domain.Job) error
 }
 
 type JobService struct {
@@ -39,29 +39,30 @@ func NewJobService(jobStore JobStore, objectStorage ObjectStorage, publisher Que
 	}
 }
 
-func (s *JobService) InitUpload(ctx context.Context) (*domain.Job, string, error) {
+func (s *JobService) InitUpload(ctx context.Context) (*domain.Job, error) {
 	jobID := uuid.New()
 	pdfKey := fmt.Sprintf("pdf/%s.pdf", jobID)
 	now := time.Now()
 
 	uploadURL, err := s.objectStorage.GetPresignedURL(ctx, pdfKey, 5*time.Minute)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	jb := &domain.Job{
+	jb := domain.Job{
 		JobID:     jobID,
 		Status:    domain.JobStatusCreated,
 		PDFKey:    pdfKey,
+		UploadURL: uploadURL,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
 
 	if err = s.jobStore.CreateJob(ctx, jb); err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	return jb, uploadURL, nil
+	return &jb, nil
 }
 
 func (s *JobService) CompleteUpload(ctx context.Context, jobID uuid.UUID) error {
@@ -85,9 +86,10 @@ func (s *JobService) CompleteUpload(ctx context.Context, jobID uuid.UUID) error 
 
 	now := time.Now()
 
-	jb := &domain.Job{
+	jb := domain.Job{
 		JobID:     jobID,
 		Status:    domain.JobStatusQueued,
+		PDFKey:    pdfKey,
 		UpdatedAt: now,
 	}
 
@@ -97,7 +99,7 @@ func (s *JobService) CompleteUpload(ctx context.Context, jobID uuid.UUID) error 
 	}
 
 	// публикуем задачу в очередь
-	err = s.publisher.PublishJob(ctx, jobID, pdfKey)
+	err = s.publisher.PublishJob(ctx, jb)
 	if err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@ type Job struct {
 	JobID     uuid.UUID
 	Status    JobStatus
 	PDFKey    string
+	UploadURL string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -24,42 +25,41 @@ const (
 	JobStatusDone       JobStatus = "done"
 )
 
-// InitUploadResponse represents the response when initializing a PDF upload
-// @name InitUploadResponse
-type JobResponse struct {
-	JobID     string `json:"job_id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	UploadURL string `json:"upload_url" example:"https://minio.example.com/upload?signature=..."`
+func (j *Job) ToTask() JobTask {
+	return JobTask{
+		JobID:  j.JobID.String(),
+		PDFKey: j.PDFKey,
+	}
 }
 
-// CompleteUploadResponse represents the response after completing upload
-// @name CompleteUploadResponse
-type CompleteUploadResponse struct {
-	JobID  string `json:"job_id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Status string `json:"status" example:"queued"`
+func (j *Job) ToInitResponse() InitResponse {
+	return InitResponse{
+		JobID:     j.JobID.String(),
+		UploadURL: j.UploadURL,
+	}
 }
 
-// ServerErrorResponse represents a server error response
-// @name ServerErrorResponse
-type ServerErrorResponse struct {
-	Error string `json:"error" example:"internal server error"`
+func (j *Job) ToRecord() JobRecord {
+	return JobRecord{
+		JobID:     j.JobID.String(),
+		Status:    string(j.Status),
+		PDFKey:    j.PDFKey,
+		CreatedAt: j.CreatedAt.Unix(),
+		UpdatedAt: j.UpdatedAt.Unix(),
+	}
 }
 
-// NotFoundResponse represents a not found error response
-// @name NotFoundResponse
-type NotFoundResponse struct {
-	Error string `json:"error" example:"jobId not found"`
+type JobRecord struct {
+	JobID     string
+	Status    string
+	PDFKey    string
+	CreatedAt int64
+	UpdatedAt int64
 }
 
-// ConflictResponse represents a conflict error response
-// @name ConflictResponse
-type ConflictResponse struct {
-	Error string `json:"error" example:"job already completed"`
-}
-
-// UnprocessableEntityResponse represents a 422 error response
-// @name UnprocessableEntityResponse
-type UnprocessableEntityResponse struct {
-	Error string `json:"error" example:"object not found in storage"`
+type InitResponse struct {
+	JobID     string `json:"job_id"`
+	UploadURL string `json:"upload_url"`
 }
 
 type JobTask struct {
