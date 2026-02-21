@@ -12,22 +12,7 @@ import (
 	"time"
 
 	"github.com/PashaDanil/logger"
-	"github.com/labstack/gommon/log"
 )
-
-// @title PDF to Images API
-// @version 1.0
-// @description API for converting PDF documents to images
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.email support@example.com
-
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host localhost:8080
-// @BasePath /
 
 func main() {
 	cfg := config.MustLoad()
@@ -57,8 +42,6 @@ func main() {
 	defer cancel()
 
 	application.Shutdown(shutdownCtx)
-
-	log.Info("application stopped")
 }
 
 func setupLogger(cfg *config.Config) *slog.Logger {

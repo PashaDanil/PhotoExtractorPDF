@@ -55,7 +55,7 @@ func (r *JobStoreRepo) CheckJobStatusQueued(ctx context.Context, jobID uuid.UUID
 		return err
 	}
 	if currentStatus == string(domain.JobStatusQueued) {
-		return errs.ErrAlreadyCompleted
+		return errs.ErrAlreadyQueued
 	}
 	return nil
 }
