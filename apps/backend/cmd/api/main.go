@@ -14,6 +14,11 @@ import (
 	"github.com/PashaDanil/logger"
 )
 
+// TODO: ошибки
+// TODO: валидация http
+// TODO: поднять логи
+// TODO: + еще один статус в redis
+
 // @title PDF to Images API
 // @version 1.0
 // @description API for converting PDF documents to images
