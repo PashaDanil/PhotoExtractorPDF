@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"api/internal/domain"
-	"api/internal/errorx"
+	errs "api/internal/errors"
 	"context"
 	"errors"
 	"net/http"
@@ -72,13 +72,13 @@ func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
 
 	err := h.jobService.CompleteUpload(c.Request().Context(), jobID)
 	if err != nil {
-		if errors.Is(err, errorx.ErrNotFound) {
+		if errors.Is(err, errs.ErrNotFound) {
 			return c.JSON(http.StatusNotFound, domain.NotFoundResponse{Error: err.Error()})
 		}
-		if errors.Is(err, errorx.ErrAlreadyCompleted) {
+		if errors.Is(err, errs.ErrAlreadyCompleted) {
 			return c.JSON(http.StatusConflict, domain.ConflictResponse{Error: err.Error()})
 		}
-		if errors.Is(err, errorx.ErrObjectNotFound) {
+		if errors.Is(err, errs.ErrObjectNotFound) {
 			return c.JSON(http.StatusUnprocessableEntity, domain.UnprocessableEntityResponse{Error: err.Error()})
 		}
 		return c.JSON(http.StatusInternalServerError, domain.ServerErrorResponse{Error: err.Error()})

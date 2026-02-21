@@ -31,7 +31,7 @@ func New(
 
 	if err := rdb.Ping(pingCtx).Err(); err != nil {
 		_ = rdb.Close()
-		return nil, fmt.Errorf("%s: ping failed: %w", err)
+		return nil, fmt.Errorf("ping failed: %w", err)
 	}
 
 	return &Redis{client: rdb}, nil
@@ -47,7 +47,7 @@ func (r *Redis) Close() error {
 	}
 
 	if err := r.client.Close(); err != nil {
-		return fmt.Errorf("%s: close client: %w", err)
+		return fmt.Errorf("close client: %w", err)
 	}
 
 	return nil
