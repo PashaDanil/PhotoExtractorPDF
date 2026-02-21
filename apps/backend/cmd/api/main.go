@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/PashaDanil/logger"
+	"github.com/labstack/gommon/log"
 )
 
 // @title PDF to Images API
@@ -31,16 +32,13 @@ import (
 func main() {
 	cfg := config.MustLoad()
 
-	log := setupLogger(cfg)
-
-	slog.SetDefault(log)
+	// log := setupLogger(cfg)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	application, err := app.New(ctx, log, cfg)
+	application, err := app.New(ctx, cfg)
 	if err != nil {
-		log.Error("app init failed", slog.Any("err", err))
 		os.Exit(1)
 	}
 
@@ -51,21 +49,14 @@ func main() {
 
 	select {
 	case <-ctx.Done():
-		log.Info("shutdown signal received")
 	case err := <-runErrCh:
-		if err != nil {
-			log.Error("server stopped with error", slog.Any("err", err))
-		} else {
-			log.Info("server stopped")
-		}
+		_ = err
 	}
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := application.Shutdown(shutdownCtx); err != nil {
-		log.Error("error during shutdown", slog.Any("err", err))
-	}
+	application.Shutdown(shutdownCtx)
 
 	log.Info("application stopped")
 }

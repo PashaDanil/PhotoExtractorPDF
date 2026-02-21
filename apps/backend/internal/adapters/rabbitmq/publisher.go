@@ -1,7 +1,7 @@
 package rabbitmq
 
 import (
-	"api/internal/domain/task"
+	"api/internal/domain"
 	"context"
 	"encoding/json"
 
@@ -17,7 +17,7 @@ func NewPublisher(ch *amqp.Channel) *Publisher {
 }
 
 func (p *Publisher) PublishJob(ctx context.Context, jobID string, pdfKey string) error {
-	msg := task.JobTask{
+	msg := domain.JobTask{
 		JobID:  jobID,
 		PDFKey: pdfKey,
 	}

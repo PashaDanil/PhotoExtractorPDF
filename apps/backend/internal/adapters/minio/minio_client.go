@@ -4,14 +4,13 @@ import (
 	"api/internal/config"
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-func New(ctx context.Context, log *slog.Logger, cfg *config.Config) (*minio.Client, error) {
+func New(ctx context.Context, cfg *config.Config) (*minio.Client, error) {
 	const op = "minio.New"
 
 	endpoint := cfg.MinIOConfig.URL
@@ -36,13 +35,6 @@ func New(ctx context.Context, log *slog.Logger, cfg *config.Config) (*minio.Clie
 	if !exists {
 		return nil, fmt.Errorf("%s: bucket does not exist: %s", op, bucket)
 	}
-
-	log.Info("minio ready",
-		slog.String("component", "minio"),
-		slog.String("endpoint", endpoint),
-		slog.Bool("ssl", useSSL),
-		slog.String("bucket", bucket),
-	)
 
 	return client, nil
 }

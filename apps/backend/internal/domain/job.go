@@ -1,4 +1,22 @@
-package job
+package domain
+
+type Job struct {
+	JobID     string    `json:"job_id"`
+	Status    JobStatus `json:"status"`
+	PDFKey    string    `json:"pdf_key"`
+	CreatedAt int64     `json:"created_at"`
+	UpdatedAt int64     `json:"updated_at"`
+}
+
+type JobStatus string
+
+const (
+	JobStatusCreated    JobStatus = "uploading"
+	JobStatusQueued     JobStatus = "queued"
+	JobStatusProcessing JobStatus = "processing"
+	JobStatusProcessed  JobStatus = "processed"
+	JobStatusDone       JobStatus = "done"
+)
 
 // InitUploadResponse represents the response when initializing a PDF upload
 // @name InitUploadResponse
@@ -36,4 +54,9 @@ type ConflictResponse struct {
 // @name UnprocessableEntityResponse
 type UnprocessableEntityResponse struct {
 	Error string `json:"error" example:"object not found in storage"`
+}
+
+type JobTask struct {
+	JobID  string `json:"job_id"`
+	PDFKey string `json:"pdf_key"`
 }

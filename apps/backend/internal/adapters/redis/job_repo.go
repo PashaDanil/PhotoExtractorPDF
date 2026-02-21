@@ -1,7 +1,8 @@
 package redis
 
 import (
-	"api/internal/domain/job"
+	"api/internal/domain"
+	"api/internal/errorx"
 	"context"
 	"fmt"
 
@@ -16,7 +17,7 @@ func NewJobStoreRepo(r *Redis) *JobStoreRepo {
 	return &JobStoreRepo{rdb: r.Client()}
 }
 
-func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *job.Job) error {
+func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *domain.Job) error {
 	err := r.rdb.HSet(ctx, jb.JobID, map[string]any{
 		"status":     string(jb.Status),
 		"pdf_key":    jb.PDFKey,
@@ -30,7 +31,7 @@ func (r *JobStoreRepo) CreateJob(ctx context.Context, jb *job.Job) error {
 	return nil
 }
 
-func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, jb *job.Job) error {
+func (r *JobStoreRepo) MarkQueuedJob(ctx context.Context, jb *domain.Job) error {
 	cmd := r.rdb.HSet(ctx, jb.JobID, map[string]any{
 		"status":     string(jb.Status),
 		"updated_at": jb.UpdatedAt,
@@ -46,12 +47,12 @@ func (r *JobStoreRepo) CheckJobStatusQueued(ctx context.Context, jobID string) e
 	currentStatus, err := r.rdb.HGet(ctx, jobID, "status").Result()
 	if err != nil {
 		if err == redis.Nil {
-			return fmt.Errorf("job %s not found: %w", jobID, job.ErrNotFound)
+			return fmt.Errorf("job %s not found: %w", jobID, errorx.ErrNotFound)
 		}
 		return err
 	}
-	if currentStatus == string(job.JobStatusQueued) {
-		return fmt.Errorf("job %s already queued: %w", jobID, job.ErrAlreadyCompleted)
+	if currentStatus == string(domain.JobStatusQueued) {
+		return fmt.Errorf("job %s already queued: %w", jobID, errorx.ErrAlreadyCompleted)
 	}
 	return nil
 }
@@ -60,7 +61,7 @@ func (r *JobStoreRepo) GetPdfKey(ctx context.Context, jobID string) (string, err
 	pdfKey, err := r.rdb.HGet(ctx, jobID, "pdf_key").Result()
 	if err != nil {
 		if err == redis.Nil {
-			return "", fmt.Errorf("job %s not found: %w", jobID, job.ErrNotFound)
+			return "", fmt.Errorf("job %s not found: %w", jobID, errorx.ErrNotFound)
 		}
 		return "", err
 	}

@@ -17,22 +17,18 @@ func NewObjectStorageRepo(mio *minio.Client, bucket string) *ObjectStorageRepo {
 }
 
 func (m *ObjectStorageRepo) GetPresignedURL(ctx context.Context, pdfKey string, expires time.Duration) (string, error) {
-	const op = "ObjectStorageRepo.GetPresignedURL"
-
 	u, err := m.client.PresignedPutObject(ctx, m.bucket, pdfKey, expires)
 	if err != nil {
-		return "", normalizeMinioErr(op, err)
+		return "", err
 	}
 
 	return u.String(), nil
 }
 
 func (m *ObjectStorageRepo) CheckObjectExists(ctx context.Context, pdfKey string) error {
-	const op = "ObjectStorageRepo.CheckObjectExists"
-
 	_, err := m.client.StatObject(ctx, m.bucket, pdfKey, minio.StatObjectOptions{})
 	if err != nil {
-		return normalizeMinioErr(op, err)
+		return err
 	}
 
 	return nil

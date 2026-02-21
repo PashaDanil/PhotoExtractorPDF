@@ -1,7 +1,7 @@
-package services
+package job
 
 import (
-	"api/internal/domain/job"
+	"api/internal/domain"
 	"context"
 	"fmt"
 	"time"
@@ -9,13 +9,29 @@ import (
 	"github.com/google/uuid"
 )
 
-type JobService struct {
-	jobStore      job.JobStore
-	objectStorage job.ObjectStorage
-	publisher     job.QueuePublisher
+type ObjectStorage interface {
+	GetPresignedURL(ctx context.Context, pdfKey string, expires time.Duration) (string, error)
+	CheckObjectExists(ctx context.Context, pdfKey string) error
 }
 
-func NewJobService(jobStore job.JobStore, objectStorage job.ObjectStorage, publisher job.QueuePublisher) *JobService {
+type JobStore interface {
+	CreateJob(ctx context.Context, job *domain.Job) error
+	MarkQueuedJob(ctx context.Context, job *domain.Job) error
+	CheckJobStatusQueued(ctx context.Context, jobID string) error
+	GetPdfKey(ctx context.Context, jobID string) (string, error)
+}
+
+type QueuePublisher interface {
+	PublishJob(ctx context.Context, jobID string, pdfKey string) error
+}
+
+type JobService struct {
+	jobStore      JobStore
+	objectStorage ObjectStorage
+	publisher     QueuePublisher
+}
+
+func NewJobService(jobStore JobStore, objectStorage ObjectStorage, publisher QueuePublisher) *JobService {
 	return &JobService{
 		jobStore:      jobStore,
 		objectStorage: objectStorage,
@@ -23,7 +39,7 @@ func NewJobService(jobStore job.JobStore, objectStorage job.ObjectStorage, publi
 	}
 }
 
-func (s *JobService) InitUpload(ctx context.Context) (*job.Job, string, error) {
+func (s *JobService) InitUpload(ctx context.Context) (*domain.Job, string, error) {
 	jobID := uuid.NewString()
 	pdfKey := fmt.Sprintf("pdf/%s.pdf", jobID)
 	now := time.Now()
@@ -33,9 +49,9 @@ func (s *JobService) InitUpload(ctx context.Context) (*job.Job, string, error) {
 		return nil, "", err
 	}
 
-	jb := &job.Job{
+	jb := &domain.Job{
 		JobID:     jobID,
-		Status:    job.JobStatusCreated,
+		Status:    domain.JobStatusCreated,
 		PDFKey:    pdfKey,
 		CreatedAt: now.Unix(),
 		UpdatedAt: now.Unix(),
@@ -69,9 +85,9 @@ func (s *JobService) CompleteUpload(ctx context.Context, jobID string) error {
 
 	now := time.Now()
 
-	jb := &job.Job{
+	jb := &domain.Job{
 		JobID:     jobID,
-		Status:    job.JobStatusQueued,
+		Status:    domain.JobStatusQueued,
 		UpdatedAt: now.Unix(),
 	}
 

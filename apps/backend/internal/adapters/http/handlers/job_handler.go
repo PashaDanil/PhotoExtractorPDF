@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	"api/internal/domain/job"
+	"api/internal/domain"
+	"api/internal/errorx"
 	"context"
 	"errors"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 )
 
 type JobService interface {
-	InitUpload(ctx context.Context) (*job.Job, string, error)
+	InitUpload(ctx context.Context) (*domain.Job, string, error)
 	CompleteUpload(ctx context.Context, jobID string) error
 }
 
@@ -36,10 +37,10 @@ func NewJobHandler(jobService JobService) *JobHandler {
 func (h *JobHandler) HandlePDFUploadRequest(c echo.Context) error {
 	jb, uploadURL, err := h.jobService.InitUpload(c.Request().Context())
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, job.ServerErrorResponse{Error: err.Error()})
+		return c.JSON(http.StatusInternalServerError, domain.ServerErrorResponse{Error: err.Error()})
 	}
 
-	response := job.InitUploadResponse{
+	response := domain.InitUploadResponse{
 		JobID:     jb.JobID,
 		UploadURL: uploadURL,
 	}
@@ -65,27 +66,27 @@ func (h *JobHandler) HandlePDFUploadComplete(c echo.Context) error {
 
 	if jobID == "" {
 		return c.JSON(
-			http.StatusBadRequest, job.ServerErrorResponse{Error: "jobId is required"},
+			http.StatusBadRequest, domain.ServerErrorResponse{Error: "jobId is required"},
 		)
 	}
 
 	err := h.jobService.CompleteUpload(c.Request().Context(), jobID)
 	if err != nil {
-		if errors.Is(err, job.ErrNotFound) {
-			return c.JSON(http.StatusNotFound, job.NotFoundResponse{Error: err.Error()})
+		if errors.Is(err, errorx.ErrNotFound) {
+			return c.JSON(http.StatusNotFound, domain.NotFoundResponse{Error: err.Error()})
 		}
-		if errors.Is(err, job.ErrAlreadyCompleted) {
-			return c.JSON(http.StatusConflict, job.ConflictResponse{Error: err.Error()})
+		if errors.Is(err, errorx.ErrAlreadyCompleted) {
+			return c.JSON(http.StatusConflict, domain.ConflictResponse{Error: err.Error()})
 		}
-		if errors.Is(err, job.ErrObjectNotFound) {
-			return c.JSON(http.StatusUnprocessableEntity, job.UnprocessableEntityResponse{Error: err.Error()})
+		if errors.Is(err, errorx.ErrObjectNotFound) {
+			return c.JSON(http.StatusUnprocessableEntity, domain.UnprocessableEntityResponse{Error: err.Error()})
 		}
-		return c.JSON(http.StatusInternalServerError, job.ServerErrorResponse{Error: err.Error()})
+		return c.JSON(http.StatusInternalServerError, domain.ServerErrorResponse{Error: err.Error()})
 	}
 
-	response := job.CompleteUploadResponse{
+	response := domain.CompleteUploadResponse{
 		JobID:  jobID,
-		Status: string(job.JobStatusQueued),
+		Status: string(domain.JobStatusQueued),
 	}
 
 	return c.JSON(http.StatusAccepted, response)
