@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"api/internal/domain"
+	"api/internal/model/domain"
 	"context"
 	"encoding/json"
 

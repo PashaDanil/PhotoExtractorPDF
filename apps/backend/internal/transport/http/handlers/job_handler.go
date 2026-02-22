@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"api/internal/domain"
+	"api/internal/model/domain"
 	"context"
 	"fmt"
 	"net/http"

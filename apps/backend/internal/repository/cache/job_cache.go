@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"api/internal/domain"
 	errs "api/internal/errors"
+	"api/internal/model/domain"
 	redisClient "api/pkg/redis"
 	"context"
 

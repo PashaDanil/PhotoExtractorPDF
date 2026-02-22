@@ -1,7 +1,7 @@
 package service
 
 import (
-	"api/internal/domain"
+	"api/internal/model/domain"
 	"context"
 	"fmt"
 	"time"
