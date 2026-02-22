@@ -1,8 +1,9 @@
-package redis
+package cache
 
 import (
 	"api/internal/domain"
 	errs "api/internal/errors"
+	redisClient "api/pkg/redis"
 	"context"
 
 	"github.com/google/uuid"
@@ -13,7 +14,7 @@ type JobStoreRepo struct {
 	rdb *redis.Client
 }
 
-func NewJobStoreRepo(r *Redis) *JobStoreRepo {
+func NewJobStoreRepo(r *redisClient.Redis) *JobStoreRepo {
 	return &JobStoreRepo{rdb: r.Client()}
 }
 

@@ -1,6 +1,9 @@
 package domain
 
 import (
+	"api/internal/model/dto"
+	"api/internal/model/records"
+	"api/internal/model/tasks"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,44 +28,26 @@ const (
 	JobStatusDone       JobStatus = "done"
 )
 
-func (j *Job) ToTask() JobTask {
-	return JobTask{
+func (j *Job) ToTask() tasks.JobTask {
+	return tasks.JobTask{
 		JobID:  j.JobID.String(),
 		PDFKey: j.PDFKey,
 	}
 }
 
-func (j *Job) ToInitResponse() InitResponse {
-	return InitResponse{
+func (j *Job) ToInitResponse() dto.InitResponse {
+	return dto.InitResponse{
 		JobID:     j.JobID.String(),
 		UploadURL: j.UploadURL,
 	}
 }
 
-func (j *Job) ToRecord() JobRecord {
-	return JobRecord{
+func (j *Job) ToRecord() records.JobRecord {
+	return records.JobRecord{
 		JobID:     j.JobID.String(),
 		Status:    string(j.Status),
 		PDFKey:    j.PDFKey,
 		CreatedAt: j.CreatedAt.Unix(),
 		UpdatedAt: j.UpdatedAt.Unix(),
 	}
-}
-
-type JobRecord struct {
-	JobID     string
-	Status    string
-	PDFKey    string
-	CreatedAt int64
-	UpdatedAt int64
-}
-
-type InitResponse struct {
-	JobID     string `json:"job_id"`
-	UploadURL string `json:"upload_url"`
-}
-
-type JobTask struct {
-	JobID  string `json:"job_id"`
-	PDFKey string `json:"pdf_key"`
 }

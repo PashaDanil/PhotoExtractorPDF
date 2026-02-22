@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"api/internal/adapters/http/handlers"
+	"api/internal/transport/http/handlers"
 	"context"
 
 	"github.com/labstack/echo/v4"

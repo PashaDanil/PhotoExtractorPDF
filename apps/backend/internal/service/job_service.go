@@ -1,4 +1,4 @@
-package job
+package service
 
 import (
 	"api/internal/domain"

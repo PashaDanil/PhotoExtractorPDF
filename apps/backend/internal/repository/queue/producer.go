@@ -1,4 +1,4 @@
-package rabbitmq
+package queue
 
 import (
 	"api/internal/domain"

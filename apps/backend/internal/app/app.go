@@ -7,14 +7,16 @@ import (
 	"net/http"
 
 	_ "api/docs"
-	"api/internal/adapters/http/handlers"
-	"api/internal/adapters/minio"
-	"api/internal/adapters/rabbitmq"
-	"api/internal/adapters/redis"
 	"api/internal/app/rest"
 	"api/internal/config"
-	jobServices "api/internal/services/job"
-	"log/slog"
+	"api/internal/repository/cache"
+	"api/internal/repository/queue"
+	"api/internal/repository/storage"
+	"api/internal/service"
+	"api/internal/transport/http/handlers"
+	"api/pkg/minio"
+	"api/pkg/rabbitmq"
+	"api/pkg/redis"
 )
 
 type App struct {
@@ -22,8 +24,7 @@ type App struct {
 	cfg        *config.Config
 	rdb        *redis.Redis
 	rmq        *rabbitmq.RabbitMQ
-	pub        *rabbitmq.Publisher
-	log        *slog.Logger
+	pub        *queue.Publisher
 }
 
 func New(
@@ -45,12 +46,12 @@ func New(
 		return nil, err
 	}
 
-	pub := rabbitmq.NewPublisher(rmq.Channel())
+	pub := queue.NewPublisher(rmq.Channel())
 
-	jobStore := redis.NewJobStoreRepo(rdb)
-	objectStorage := minio.NewObjectStorageRepo(mio, cfg.MinIOConfig.Bucket)
+	jobStore := cache.NewJobStoreRepo(rdb)
+	objectStorage := storage.NewObjectStorageRepo(mio, cfg.MinIOConfig.Bucket)
 
-	jobService := jobServices.NewJobService(jobStore, objectStorage, pub)
+	jobService := service.NewJobService(jobStore, objectStorage, pub)
 	jobHandler := handlers.NewJobHandler(jobService)
 
 	server, err := rest.New(jobHandler, cfg.ServerConfig.Port)
