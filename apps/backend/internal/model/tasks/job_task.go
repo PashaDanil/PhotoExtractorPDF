@@ -1,4 +1,4 @@
-package task
+package tasks
 
 type JobTask struct {
 	JobID  string `json:"job_id"`

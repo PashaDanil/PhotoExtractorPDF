@@ -3,6 +3,7 @@ package minio
 import (
 	"api/internal/config"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -10,8 +11,6 @@ import (
 )
 
 func New(ctx context.Context, cfg *config.Config) (*minio.Client, error) {
-	const op = "minio.New"
-
 	endpoint := cfg.MinIOConfig.URL
 	useSSL := cfg.MinIOConfig.UseSSL
 	bucket := cfg.MinIOConfig.Bucket
@@ -21,8 +20,7 @@ func New(ctx context.Context, cfg *config.Config) (*minio.Client, error) {
 		Secure: useSSL,
 	})
 	if err != nil {
-		// обработать ошибку
-		return nil, err
+		return nil, fmt.Errorf("create client: %w", err)
 	}
 
 	healthCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -30,12 +28,10 @@ func New(ctx context.Context, cfg *config.Config) (*minio.Client, error) {
 
 	exists, err := client.BucketExists(healthCtx, bucket)
 	if err != nil {
-		// обработать ошибку
-		return nil, err
+		return nil, fmt.Errorf("healthcheck (bucket exists): %w", err)
 	}
 	if !exists {
-		// обработать ошибку
-		return nil, err
+		return nil, fmt.Errorf("bucket does not exist: %s", bucket)
 	}
 
 	return client, nil

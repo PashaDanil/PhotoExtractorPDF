@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"api/internal/adapters/http/handlers"
+	"api/internal/transport/http/handlers"
 	"context"
 
 	"github.com/labstack/echo/v4"
@@ -44,8 +44,6 @@ func New(
 }
 
 func (s *Server) Run() error {
-	const op = "http.Server.Run"
-
 	err := s.e.Start(":" + s.port)
 	if err != nil {
 		// обработать ошибку
@@ -56,8 +54,5 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	const op = "RESTserver.Stop"
-
-	// обработать ошибку
 	return s.e.Shutdown(ctx)
 }

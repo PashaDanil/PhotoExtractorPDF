@@ -3,6 +3,7 @@ package redis
 import (
 	"api/internal/config"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -16,8 +17,6 @@ func New(
 	ctx context.Context,
 	cfg *config.Config,
 ) (*Redis, error) {
-	const op = "redis.New"
-
 	addr := cfg.RedisConfig.URL
 	db := cfg.RedisConfig.DB
 
@@ -32,8 +31,7 @@ func New(
 
 	if err := rdb.Ping(pingCtx).Err(); err != nil {
 		_ = rdb.Close()
-		// обработать ошибку
-		return nil, err
+		return nil, fmt.Errorf("ping failed: %w", err)
 	}
 
 	return &Redis{client: rdb}, nil
@@ -44,15 +42,12 @@ func (r *Redis) Client() *redis.Client {
 }
 
 func (r *Redis) Close() error {
-	const op = "redis.Close"
-
 	if r.client == nil {
 		return nil
 	}
 
 	if err := r.client.Close(); err != nil {
-		// обработать ошибку
-		return err
+		return fmt.Errorf("close client: %w", err)
 	}
 
 	return nil

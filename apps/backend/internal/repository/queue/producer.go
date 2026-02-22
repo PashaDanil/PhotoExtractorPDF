@@ -1,9 +1,9 @@
-package rabbitmq
+package queue
 
 // TODO: переделать клиент rabbitmq
 
 import (
-	"api/internal/domain/task"
+	"api/internal/model/domain"
 	"context"
 	"encoding/json"
 
@@ -18,11 +18,11 @@ func NewPublisher(ch *amqp.Channel) *Publisher {
 	return &Publisher{ch: ch}
 }
 
-func (p *Publisher) PublishJob(ctx context.Context, jobID string, pdfKey string) error {
-	msg := task.JobTask{
-		JobID:  jobID,
-		PDFKey: pdfKey,
-	}
+func (p *Publisher) PublishJob(ctx context.Context, jb domain.Job) error {
+
+	// ToTask
+
+	msg := jb.ToTask()
 
 	body, err := json.Marshal(msg)
 	if err != nil {

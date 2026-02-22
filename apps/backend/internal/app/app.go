@@ -7,13 +7,16 @@ import (
 	"net/http"
 
 	_ "api/docs"
-	"api/internal/adapters/http/handlers"
-	"api/internal/adapters/minio"
-	"api/internal/adapters/rabbitmq"
-	"api/internal/adapters/redis"
 	"api/internal/app/rest"
 	"api/internal/config"
-	"api/internal/services"
+	"api/internal/repository/cache"
+	"api/internal/repository/queue"
+	"api/internal/repository/storage"
+	"api/internal/service"
+	"api/internal/transport/http/handlers"
+	"api/pkg/minio"
+	"api/pkg/rabbitmq"
+	"api/pkg/redis"
 )
 
 type App struct {
@@ -21,7 +24,7 @@ type App struct {
 	cfg        *config.Config
 	rdb        *redis.Redis
 	rmq        *rabbitmq.RabbitMQ
-	pub        *rabbitmq.Publisher
+	pub        *queue.Publisher
 }
 
 func New(
@@ -30,43 +33,29 @@ func New(
 ) (*App, error) {
 	rdb, err := redis.New(ctx, cfg)
 	if err != nil {
-		// обработать ошибку
 		return nil, err
 	}
 
 	mio, err := minio.New(ctx, cfg)
 	if err != nil {
-		// обработать ошибку
-		_ = rdb.Close()
-
 		return nil, err
 	}
 
 	rmq, err := rabbitmq.New(cfg)
 	if err != nil {
-		// обработать ошибку
 		return nil, err
 	}
 
-	if err := rabbitmq.Setup(rmq); err != nil {
-		_ = rmq.Close()
-		// обработать ошибку
-		return nil, err
-	}
+	pub := queue.NewPublisher(rmq.Channel())
 
-	pub := rabbitmq.NewPublisher(rmq.Channel())
+	jobStore := cache.NewJobStoreRepo(rdb)
+	objectStorage := storage.NewObjectStorageRepo(mio, cfg.MinIOConfig.Bucket)
 
-	jobStore := redis.NewJobStoreRepo(rdb)
-	objectStorage := minio.NewObjectStorageRepo(mio, cfg.MinIOConfig.Bucket)
-
-	jobService := services.NewJobService(jobStore, objectStorage, pub)
+	jobService := service.NewJobService(jobStore, objectStorage, pub)
 	jobHandler := handlers.NewJobHandler(jobService)
 
 	server, err := rest.New(jobHandler, cfg.ServerConfig.Port)
 	if err != nil {
-		_ = rmq.Close()
-		_ = rdb.Close()
-		// обработать ошибку
 		return nil, err
 	}
 
@@ -75,6 +64,7 @@ func New(
 		cfg:        cfg,
 		rdb:        rdb,
 		rmq:        rmq,
+		pub:        pub,
 	}, nil
 }
 
