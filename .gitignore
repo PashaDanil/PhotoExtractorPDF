@@ -45,6 +45,8 @@ out/
 # Vite
 vite.config.ts.timestamp-*
 
+,,new
+
 # =========================
 # Go / Jobs-api
 # =========================
