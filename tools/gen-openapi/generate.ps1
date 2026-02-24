@@ -6,14 +6,14 @@ $ErrorActionPreference = "Stop"
 
 # Get the root directory (two levels up from this script)
 $rootDir = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$backendDir = Join-Path $rootDir "apps\backend"
+$jobs-apiDir = Join-Path $rootDir "apps\jobs-api"
 $contractsDir = Join-Path $rootDir "libs\contracts\openapi"
 $frontendDir = Join-Path $rootDir "apps\frontend"
 
 Write-Host "Generating Swagger documentation..." -ForegroundColor Cyan
 
-# Navigate to backend directory and run swag init
-Push-Location $backendDir
+# Navigate to jobs-api directory and run swag init
+Push-Location $jobs-apiDir
 try {
     $output = swag init -g ./cmd/api/main.go --parseDependency --parseInternal -o ./docs 2>&1 
     $filteredOutput = $output | Where-Object { 
@@ -33,7 +33,7 @@ try {
 
 # Copy the generated YAML to contracts directory
 Write-Host "Copying OpenAPI spec to contracts..." -ForegroundColor Cyan
-$sourceYaml = Join-Path $backendDir "docs\swagger.yaml"
+$sourceYaml = Join-Path $jobs-apiDir "docs\swagger.yaml"
 $targetYaml = Join-Path $contractsDir "imgpdf.yaml"
 
 if (Test-Path $sourceYaml) {

@@ -46,7 +46,7 @@ out/
 vite.config.ts.timestamp-*
 
 # =========================
-# Go / Backend
+# Go / Jobs-api
 # =========================
 # Binaries
 *.exe
