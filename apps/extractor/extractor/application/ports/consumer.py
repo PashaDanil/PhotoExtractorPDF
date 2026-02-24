@@ -1,22 +1,36 @@
-import pika
+from abc import ABC, abstractmethod
 
-# Establish a connection to RabbitMQ
-connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-channel = connection.channel()
+class Consumer(ABC):
 
-# Declare the queue 'hello' (it needs to exist)
-channel.queue_declare(queue='hello')
+    @abstractmethod
+    def connect(self):
+        """
+        Метод для подключения к брокеру сообщений
+        """
+        ...
 
-# Define a callback function to process incoming messages
-def callback(ch, method, properties, body):
-    print(f" [x] Received '{body.decode()}'")
+    @abstractmethod
+    def subscribe(self, topic: str):
+        """
+        Метод для подписки на топик
+        Args:
+            topic: Строка - название топика
+        Returns:
+            None
+        """
+        ...
 
-# Tell RabbitMQ to consume messages from the 'hello' queue
-channel.basic_consume(queue='hello',
-                      on_message_callback=callback,
-                      auto_ack=True)
+    @abstractmethod
+    def consume(self):
+        """
+        Начать считывать сообщения с брокера
+        """
+        ...
 
-print(' [*] Waiting for messages. To exit press CTRL+C')
+    @abstractmethod
+    def close(self):
+        """
+        Остановка считывания сообщений с брокера
+        """
+        ...
 
-# Start consuming messages (this will block until a message is received)
-channel.start_consuming()
