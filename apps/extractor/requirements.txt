@@ -4,3 +4,4 @@ ultralytics==8.4.14
 zipstream==1.1.4
 miniopy-async==1.23.4
 torch==2.10.0 # for cpu only. For gpu support visit pytorch.org Get Started page
+pika==1.3.2
