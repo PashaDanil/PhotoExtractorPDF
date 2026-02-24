@@ -1,3 +1,6 @@
 [submodule "apps/jobs-api"]
 	path = apps/jobs-api
 	url = git@github.com:PashaDanil/jobs-api.git
+[submodule "apps/frontend"]
+	path = apps/frontend
+	url = git@github.com:PashaDanil/frontend.git
