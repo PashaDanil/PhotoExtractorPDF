@@ -28,7 +28,7 @@ class Consumer(ABC):
         ...
 
     @abstractmethod
-    def close(self):
+    def disconnect(self):
         """
         Остановка считывания сообщений с брокера
         """
