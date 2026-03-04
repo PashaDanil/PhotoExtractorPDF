@@ -3,14 +3,14 @@ from abc import ABC, abstractmethod
 class Consumer(ABC):
 
     @abstractmethod
-    def connect(self):
+    async def connect(self):
         """
         Метод для подключения к брокеру сообщений
         """
         ...
 
     @abstractmethod
-    def subscribe(self, topic: str):
+    async def subscribe(self, topic: str):
         """
         Метод для подписки на топик
         Args:
@@ -21,14 +21,14 @@ class Consumer(ABC):
         ...
 
     @abstractmethod
-    def consume(self):
+    async def consume(self):
         """
         Начать считывать сообщения с брокера
         """
         ...
 
     @abstractmethod
-    def disconnect(self):
+    async def disconnect(self):
         """
         Остановка считывания сообщений с брокера
         """
