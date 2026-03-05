@@ -11,6 +11,8 @@ class RabbitMQConfig(BaseSettings):
     consume_queue: str = Field(..., alias="RABBITMQ_CONSUME_QUEUE")
     publish_queue: str = Field(..., alias="RABBITMQ_PUBLISH_QUEUE")
 
+    prefetch_count: int = Field(1, alias="RABBITMQ_PREFETCH_COUNT")
+
     exchange: str = Field("", alias="RABBITMQ_EXCHANGE")
     exchange_type: str = Field("direct", alias="RABBITMQ_EXCHANGE_TYPE")
     durable: bool = Field(True, alias="RABBITMQ_DURABLE")
