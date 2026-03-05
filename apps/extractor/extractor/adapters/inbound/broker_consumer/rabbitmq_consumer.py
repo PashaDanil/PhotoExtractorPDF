@@ -1,3 +1,8 @@
+import logging
+import aio_pika
+import aio_pika.exceptions
+from aio_pika.abc import AbstractRobustConnection, AbstractRobustChannel, AbstractIncomingMessage
+from infrastructure.config.rabbitmq import RabbitMQConfig
 from extractor.application.ports.consumer import Consumer
 from extractor.exceptions.broker_exp import (
     BrokerConnectionError,
@@ -5,9 +10,6 @@ from extractor.exceptions.broker_exp import (
     BrokerValidationError,
     BrokerUnexpectedError,
 )
-import aio_pika
-import aio_pika.exceptions
-import logging
 
 RETRIABLE_EXCEPTIONS = (
     aio_pika.exceptions.AMQPConnectionError,
@@ -26,27 +28,26 @@ logger = logging.getLogger(__name__)
 
 class RabbitConsumer(Consumer):
 
-    def __init__(self, url: str) -> None:
+    def __init__(self, config: RabbitMQConfig) -> None:
         """
-        Конструктор consumer(а)
+        Инициализирует consumer для RabbitMQ.
         Args:
-            :param url: amqp://user:password@host:port/vhost
+            config: Конфигурация подключения к RabbitMQ
         Returns:
             None
         """
-        self._url = url
-        self._connection: aio_pika.abc.AbstractConnection | None = None
-        self._channel: aio_pika.abc.AbstractChannel | None = None
+        self._config = config
+        self._connection: AbstractRobustConnection | None = None
+        self._channel: AbstractRobustChannel | None = None
         self._topics: list[str] = []
         logger.info("Инициализирован RabbitMQ consumer")
 
     async def connect(self) -> None:
         """Открыть соединение и канал."""
         try:
-            self._connection = await aio_pika.connect_robust(self._url)
+            self._connection = await aio_pika.connect_robust(self._config.url)
             self._channel = await self._connection.channel()
-            # Prefetch: обрабатываем по одному сообщению за раз
-            await self._channel.set_qos(prefetch_count=1)
+            await self._channel.set_qos(prefetch_count=self._config.prefetch_count)
             logger.info("Подключение к RabbitMQ: канал открыт")
 
         except FATAL_EXCEPTIONS as e:
@@ -88,7 +89,7 @@ class RabbitConsumer(Consumer):
             raise BrokerValidationError("Название топика не может быть пустой строкой")
 
         try:
-            await self._channel.declare_queue(topic, durable=True)
+            await self._channel.declare_queue(topic, durable=self._config.durable)
             self._topics.append(topic)
             logger.info("Подписка на topic: %s", topic)
 
@@ -104,10 +105,12 @@ class RabbitConsumer(Consumer):
             logger.exception("Непредвиденная ошибка при объявлении очереди %s", topic)
             raise BrokerUnexpectedError("Непредвиденная ошибка") from e
 
-    async def consume(self):
+    async def consume(self) -> None:
         """
         Запустить асинхронное считывание сообщений.
         Не блокирует event loop — использует async generator от aio_pika.
+        Returns:
+            None
         """
         if not self._topics:
             raise BrokerValidationError(
@@ -116,8 +119,7 @@ class RabbitConsumer(Consumer):
 
         try:
             for topic in self._topics:
-                queue = await self._channel.get_queue(topic)
-                # on_message_callback вызывается как корутина
+                queue = await self._channel.declare_queue(topic, durable=self._config.durable, passive=True)
                 await queue.consume(self._callback)
             logger.info("Начато потребление сообщений из: %s", self._topics)
 
@@ -133,29 +135,37 @@ class RabbitConsumer(Consumer):
             logger.exception("Непредвиденная ошибка при подписке на топики")
             raise BrokerUnexpectedError("Непредвиденная ошибка при подписке") from e
 
-    async def _callback(self, message: aio_pika.abc.AbstractIncomingMessage):
+    async def _callback(self, message: AbstractIncomingMessage) -> None:
         """
-        Вызывается event loop'ом для каждого входящего сообщения.
+        Обрабатывает входящее сообщение от RabbitMQ.
+
+        Вызывается event loop'ом для каждого полученного сообщения.
+
+        Args:
+            message: Входящее сообщение из очереди RabbitMQ.
         """
-        async with message.process(requeue=True):          # nack+requeue при исключении
-            try:
-                payload = message.body.decode("utf-8")
-                logger.debug("Получено сообщение: %s", payload)
-                logger.info(
-                    "Получено сообщение delivery_tag=%s", message.delivery_tag
-                )
+        try:
+            payload = message.body.decode("utf-8")
+            logger.debug("Получено сообщение: %s", payload)
+            logger.info("Получено сообщение delivery_tag=%s", message.delivery_tag)
+            await self._handle(payload)
+            await message.ack()
 
-                # TODO: передать payload в use-case
-                await self._handle(payload)
+        except UnicodeDecodeError as e:
+            logger.exception("Ошибка декодирования delivery_tag=%s", message.delivery_tag)
+            await message.nack(requeue=False)
+            raise BrokerValidationError(
+                f"Ошибка декодирования delivery_tag={message.delivery_tag}"
+            ) from e
 
-            except UnicodeDecodeError as e:
-                logger.exception(
-                    "Ошибка декодирования delivery_tag=%s", message.delivery_tag
-                )
-                raise BrokerValidationError(
-                    f"Ошибка декодирования delivery_tag={message.delivery_tag}"
-                ) from e
+        except BrokerConnectionError:
+            await message.nack(requeue=True)
+            raise
 
-    async def _handle(self, payload: str):
-        """Заинжектить use-case сюда."""
+        except Exception:
+            await message.nack(requeue=False)
+            raise
+
+    async def _handle(self, payload: str) -> None:
+        """TODO: Заинжектить use-case сюда."""
         raise NotImplementedError
