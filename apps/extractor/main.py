@@ -8,6 +8,9 @@ from extractor.adapters.outbound.zip.batched_zip_archiver import BatchedZipArchi
 from extractor.domain.entities.page import Page
 from extractor.domain.entities.document import Document
 from extractor.domain.entities.image import Image
+from logger import setup_logger
+
+logger = setup_logger(name="extractor", log_file="logs/app.log")
 
 
 async def process_single_document(
@@ -110,7 +113,7 @@ async def process_single_document(
     return document
 
 
-async def process_multiple_documents(documents: list[tuple[str, str]], device: str = 'cpu'):
+async def process_multiple_documents(documents: list[tuple[str, str]], device: str = 'cpu', model: str = "models/yolov11m-doclaynet.pt"):
     """
     Пример обработки нескольких документов одновременно.
     Все сервисы - singleton, используются всеми документами.
@@ -124,7 +127,7 @@ async def process_multiple_documents(documents: list[tuple[str, str]], device: s
 
     # Image Detector - один на все документы
     detector = YoloDetector(
-        model_path="yolov11m-doclaynet.pt",
+        model_path=model,
         imgsz=960,
         classes=[6],  # только изображения
         device=device
@@ -177,10 +180,17 @@ async def process_multiple_documents(documents: list[tuple[str, str]], device: s
 
 if __name__ == "__main__":
 
+    logger.info("Приложение запущено")
     # указываешь документ + имя зип архива
     documents = [
-        ("50137291M.pdf", "document1_images.zip"),
-        ("Курсовая (Комаров Б9123-09.03.04).pdf", "document3_images.zip"),
+        ("test_pdf/50137291M.pdf", "document1_images.zip"),
+        ("test_pdf/Курсовая (Комаров Б9123-09.03.04).pdf", "document3_images.zip"),
     ]
 
-    asyncio.run(process_multiple_documents(documents, device='cpu')) # device = cuda for GPU
+    asyncio.run(process_multiple_documents
+        (
+        documents,
+        device='cpu', # device = cuda for CUDA GPU
+        model="models/yolov11m-doclaynet.pt"
+    )
+    )

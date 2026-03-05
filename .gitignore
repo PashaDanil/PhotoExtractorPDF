@@ -45,8 +45,10 @@ out/
 # Vite
 vite.config.ts.timestamp-*
 
+,,new
+
 # =========================
-# Go / Backend
+# Go / Jobs-api
 # =========================
 # Binaries
 *.exe
@@ -135,9 +137,12 @@ dmypy.json
 .env.*
 !.env.example
 !.env.template
+!.env.tools.example
 *.pem
 *.key
 secrets/
+!local.example.yaml
+*local.yaml
 
 # =========================
 # Editors & IDEs
