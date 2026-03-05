@@ -8,6 +8,9 @@ from extractor.adapters.outbound.zip.batched_zip_archiver import BatchedZipArchi
 from extractor.domain.entities.page import Page
 from extractor.domain.entities.document import Document
 from extractor.domain.entities.image import Image
+from logger import setup_logger
+
+logger = setup_logger(name="extractor", log_file="logs/app.log")
 
 
 async def process_single_document(
@@ -177,6 +180,7 @@ async def process_multiple_documents(documents: list[tuple[str, str]], device: s
 
 if __name__ == "__main__":
 
+    logger.info("Приложение запущено")
     # указываешь документ + имя зип архива
     documents = [
         ("test_pdf/50137291M.pdf", "document1_images.zip"),
