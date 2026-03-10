@@ -1,86 +1,56 @@
 basePath: /
 definitions:
-  api_internal_domain_job.CompleteUploadResponse:
+  dto.CompleteUploadResponse:
     properties:
       job_id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      status:
-        example: queued
+        example: <UUID>
         type: string
     type: object
-  api_internal_domain_job.ConflictResponse:
+  dto.HTTPError:
     properties:
       error:
-        example: job already completed
+        type: string
+      message:
         type: string
     type: object
-  api_internal_domain_job.InitUploadResponse:
+  dto.InitUploadResponse:
     properties:
       job_id:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       upload_url:
-        example: https://minio.example.com/upload?signature=...
-        type: string
-    type: object
-  api_internal_domain_job.NotFoundResponse:
-    properties:
-      error:
-        example: jobId not found
-        type: string
-    type: object
-  api_internal_domain_job.ServerErrorResponse:
-    properties:
-      error:
-        example: internal server error
-        type: string
-    type: object
-  api_internal_domain_job.UnprocessableEntityResponse:
-    properties:
-      error:
-        example: object not found in storage
+        example: https://storage/upload/<UUID>?signature=...
         type: string
     type: object
 host: localhost:8080
 info:
-  contact:
-    email: support@example.com
-    name: API Support
-  description: API for converting PDF documents to images
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: PDF to Images API
-  version: "1.0"
+  contact: {}
+  description: API for creating upload jobs and completing PDF uploads for processing.
+  title: Jobs API
+  version: 1.0.0
 paths:
   /upload:
     post:
-      consumes:
-      - application/json
-      description: Initialize a new PDF upload job and get presigned upload URL
+      description: Creates a new job and returns a presigned URL for PDF upload.
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api_internal_domain_job.InitUploadResponse'
+            $ref: '#/definitions/dto.InitUploadResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api_internal_domain_job.ServerErrorResponse'
-      summary: Initialize PDF upload
+            $ref: '#/definitions/dto.HTTPError'
+      summary: Init PDF upload
       tags:
       - upload
   /upload/{jobId}/complete:
     post:
-      consumes:
-      - application/json
-      description: Mark the PDF upload as complete and queue for processing
+      description: Marks upload as complete and enqueues a job for processing.
       parameters:
-      - description: Job ID
+      - description: Job ID (UUID)
         in: path
         name: jobId
         required: true
@@ -91,24 +61,29 @@ paths:
         "202":
           description: Accepted
           schema:
-            $ref: '#/definitions/api_internal_domain_job.CompleteUploadResponse'
+            $ref: '#/definitions/dto.CompleteUploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.HTTPError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api_internal_domain_job.NotFoundResponse'
+            $ref: '#/definitions/dto.HTTPError'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/api_internal_domain_job.ConflictResponse'
-        "422":
-          description: Unprocessable Entity
-          schema:
-            $ref: '#/definitions/api_internal_domain_job.UnprocessableEntityResponse'
+            $ref: '#/definitions/dto.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api_internal_domain_job.ServerErrorResponse'
+            $ref: '#/definitions/dto.HTTPError'
       summary: Complete PDF upload
       tags:
       - upload
+schemes:
+- http
 swagger: "2.0"
+tags:
+- description: 'Endpoints for upload lifecycle: init upload and complete upload.'
+  name: upload
